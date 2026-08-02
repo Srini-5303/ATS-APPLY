@@ -10,3 +10,7 @@ static/
 pnpm-lock.yaml
 tests/fixtures/**/*.pdf
 tests/fixtures/**/*.docx
+
+# Golden snapshots are byte-compared against generated output. Reformatting them makes every
+# comparison fail.
+tests/fixtures/expected/

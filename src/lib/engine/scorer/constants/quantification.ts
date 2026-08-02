@@ -5,7 +5,9 @@ export const QUANT_PATTERNS: readonly RegExp[] = [
 	/\d+\s*%/, // percentages
 	/\$\s?[\d,]+/, // dollar amounts
 	/\d+\s*(?:x\b|times\b)/i, // multipliers
-	/\d+\s*(?:users?|customers?|clients?|employees?|members?|people|teams?)\b/i,
+	// Headcount. Deliberately broad: "engineers", "developers" and "reports" are at least as
+	// common on a resume as the PRD's original "users/customers/employees".
+	/\d+\s*(?:users?|customers?|clients?|employees?|members?|people|teams?|engineers?|developers?|designers?|analysts?|contractors?|staff|reports?|students?|patients?)\b/i,
 	/\d+\s*(?:projects?|products?|applications?|systems?|services?|features?)\b/i,
 	/(?:top|first|#)\s*\d+/i, // rankings
 	/\d+\s*(?:hours?|days?|weeks?|months?|years?)\b/i, // durations
@@ -16,11 +18,15 @@ export const QUANT_PATTERNS: readonly RegExp[] = [
 /**
  * Ratio of quantified bullets at which the dimension reaches 100.
  *
- * PRD §7.7 implied 0.4, which saturates too early — a resume with every bullet quantified
- * would score the same as one with 40%, flattening the top of the range. Tuned against the
- * fixture corpus in Phase 3; kept as a named constant so tuning is a one-line change.
+ * PRD §7.7 implied 0.4, which saturates far too early — a resume with every bullet
+ * quantified scored the same as one with 40%, flattening the whole top of the range. 0.5 was
+ * still too generous for the same reason.
+ *
+ * 0.75 means three bullets in four must carry a concrete result for full marks: demanding but
+ * achievable, and it keeps the top of the range discriminating. Retuned against the fixture
+ * corpus in Phase 3; a named constant so that is a one-line change.
  */
-export const QUANT_SATURATION_RATIO = 0.5;
+export const QUANT_SATURATION_RATIO = 0.75;
 
 /** Threshold for Greenhouse's quantification bonus (PRD §7.9). */
 export const QUANT_BONUS_RATIO = 0.4;

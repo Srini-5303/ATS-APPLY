@@ -1,0 +1,74 @@
+{
+  "contact": {
+    "name": "Zoë Fitzgerald-O'Brien",
+    "email": "zoe@example.com",
+    "phone": "+44 20 7946 0958",
+    "linkedin": null,
+    "github": null,
+    "website": null,
+    "location": "London, UK"
+  },
+  "metadata": {
+    "fileType": "pdf",
+    "pageCount": 1,
+    "wordCount": 58,
+    "lineCount": 10,
+    "hasMultipleColumns": false,
+    "hasTables": false,
+    "hasImages": false
+  },
+  "sections": [
+    {
+      "type": "contact",
+      "heading": null,
+      "lines": 2
+    },
+    {
+      "type": "experience",
+      "heading": "EXPERIENCE",
+      "lines": 4
+    },
+    {
+      "type": "education",
+      "heading": "EDUCATION",
+      "lines": 2
+    }
+  ],
+  "experience": [
+    {
+      "title": "Office Manager",
+      "company": "Müller & Co",
+      "location": null,
+      "dates": {
+        "start": "2019",
+        "end": "2024",
+        "isCurrent": false
+      },
+      "bullets": [
+        "Oversaw workflow for a 40-person office",
+        "Reduced filing errors by 35%",
+        "Ran the \"fast track\" intake programme for 120 clients"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "degree": "M.A.",
+      "field": "Linguistics",
+      "institution": "Universität München",
+      "dates": {
+        "start": "2019",
+        "end": null,
+        "isCurrent": false
+      },
+      "gpa": "3.9",
+      "honors": [
+        "dean's list"
+      ]
+    }
+  ],
+  "projects": [],
+  "certifications": [],
+  "skills": [],
+  "summary": null
+}

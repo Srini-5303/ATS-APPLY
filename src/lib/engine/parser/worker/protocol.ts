@@ -1,3 +1,4 @@
+import type { DocxExtraction } from '../docx';
 import type { PdfGeometry } from '../pdf';
 import type { ParseErrorCode } from '../../types/parser';
 
@@ -8,13 +9,16 @@ import type { ParseErrorCode } from '../../types/parser';
  * callable, so they remain testable in Vitest node without spinning up a worker.
  */
 
+export type ParseKind = 'pdf' | 'docx';
+
 export interface ParseRequest {
 	id: string;
-	kind: 'pdf' | 'docx';
+	kind: ParseKind;
 	/** Transferred, not copied. */
 	buffer: ArrayBuffer;
 }
 
 export type ParseResponse =
-	| { id: string; ok: true; geometry: PdfGeometry }
+	| { id: string; ok: true; kind: 'pdf'; geometry: PdfGeometry }
+	| { id: string; ok: true; kind: 'docx'; extraction: DocxExtraction }
 	| { id: string; ok: false; code: ParseErrorCode; message: string };

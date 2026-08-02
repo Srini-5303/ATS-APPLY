@@ -1,0 +1,33 @@
+{
+  "contact": {
+    "name": "Alex Morgan",
+    "email": "alex@example.com",
+    "phone": null,
+    "linkedin": null,
+    "github": null,
+    "website": null,
+    "location": null
+  },
+  "metadata": {
+    "fileType": "pdf",
+    "pageCount": 1,
+    "wordCount": 7,
+    "lineCount": 3,
+    "hasMultipleColumns": false,
+    "hasTables": false,
+    "hasImages": false
+  },
+  "sections": [
+    {
+      "type": "contact",
+      "heading": null,
+      "lines": 3
+    }
+  ],
+  "experience": [],
+  "education": [],
+  "projects": [],
+  "certifications": [],
+  "skills": [],
+  "summary": null
+}

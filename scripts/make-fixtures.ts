@@ -12,10 +12,12 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { buildDocx, type DocxSpec } from './lib/docx-builder';
 import { buildPdf, PAGE_HEIGHT, type PageSpec, type TextItem } from './lib/pdf-builder';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, '..', 'tests', 'fixtures', 'pdf');
+const DOCX_OUT = join(HERE, '..', 'tests', 'fixtures', 'docx');
 
 const LEFT = 72; // 1in margin
 const TOP = PAGE_HEIGHT - 72;
@@ -220,8 +222,13 @@ const fixtures: Record<string, PageSpec[]> = {
 		}
 	],
 
-	// Ligatures and non-ASCII names — must survive text normalisation intact.
-	'ligatures-unicode': [
+	// Curly punctuation and accented characters, which WinAnsi does carry.
+	//
+	// This deliberately does NOT test ligatures: base-14 fonts have no glyph for U+FB01 and
+	// friends, so an earlier version of this fixture had them silently dropped at generation
+	// time and was asserting nothing. Ligature folding is a pure string transform and is
+	// covered directly in tests/unit/parser/text.spec.ts.
+	'unicode-punctuation': [
 		{
 			items: column(
 				[
@@ -229,12 +236,14 @@ const fixtures: Record<string, PageSpec[]> = {
 					'zoe@example.com | +44 20 7946 0958 | London, UK',
 					null,
 					'EXPERIENCE',
-					'Office Manager | Fiﬁ & Flaﬂ Ltd | 2019 - 2024',
-					'- Oversaw workflow for a 40-person oﬃce',
-					'- Reduced ﬁling errors by 35%',
+					'Office Manager | Müller & Co | 2019 – 2024',
+					'- Oversaw workflow for a 40-person office',
+					'- Reduced filing errors by 35%',
+					'- Ran the “fast track” intake programme for 120 clients',
 					null,
 					'EDUCATION',
-					'M.A. Linguistics | Universität München | 2019'
+					'M.A. Linguistics | Universität München | 2019',
+					'GPA: 3.9 | Dean’s List'
 				],
 				LEFT,
 				TOP
@@ -281,6 +290,30 @@ const fixtures: Record<string, PageSpec[]> = {
 	]
 };
 
+const RESUME_PARAGRAPHS = STRONG_RESUME.map((l) => l ?? '');
+
+const docxFixtures: Record<string, DocxSpec> = {
+	// Baseline. mammoth flattens layout, so this is the DOCX equivalent of a clean parse.
+	clean: { paragraphs: RESUME_PARAGRAPHS },
+
+	// A real <w:tbl>, which must surface as hasTables.
+	'with-table': {
+		paragraphs: ['ALEX MORGAN', '', 'SKILLS'],
+		table: [
+			['Language', 'Level'],
+			['Go', 'Expert'],
+			['Python', 'Advanced']
+		]
+	},
+
+	// An embedded image, which must surface as hasImages.
+	'with-image': { paragraphs: RESUME_PARAGRAPHS.slice(0, 12), includeImage: true },
+
+	// Empty body. mammoth silently drops text inside text boxes, so a resume built entirely
+	// from them extracts to nothing — asserted rather than discovered in production.
+	'empty-body': { paragraphs: [] }
+};
+
 function main(): void {
 	mkdirSync(OUT, { recursive: true });
 
@@ -290,7 +323,17 @@ function main(): void {
 		console.log(`  ${name}.pdf  ${String(bytes.length)} bytes, ${String(pages.length)} page(s)`);
 	}
 
-	console.log(`\n${String(Object.keys(fixtures).length)} fixtures written to ${OUT}`);
+	mkdirSync(DOCX_OUT, { recursive: true });
+
+	for (const [name, spec] of Object.entries(docxFixtures)) {
+		const bytes = buildDocx(spec);
+		writeFileSync(join(DOCX_OUT, `${name}.docx`), bytes);
+		console.log(`  ${name}.docx  ${String(bytes.length)} bytes`);
+	}
+
+	console.log(
+		`\n${String(Object.keys(fixtures).length)} PDF + ${String(Object.keys(docxFixtures).length)} DOCX fixtures written`
+	);
 }
 
 main();

@@ -1,0 +1,100 @@
+{
+  "contact": {
+    "name": "ALEX MORGAN",
+    "email": "alex@example.com",
+    "phone": "(415) 555-0142",
+    "linkedin": null,
+    "github": null,
+    "website": null,
+    "location": null
+  },
+  "metadata": {
+    "fileType": "pdf",
+    "pageCount": 1,
+    "wordCount": 53,
+    "lineCount": 23,
+    "hasMultipleColumns": true,
+    "hasTables": false,
+    "hasImages": false
+  },
+  "sections": [
+    {
+      "type": "contact",
+      "heading": null,
+      "lines": 2
+    },
+    {
+      "type": "contact",
+      "heading": "CONTACT",
+      "lines": 3
+    },
+    {
+      "type": "skills",
+      "heading": "SKILLS",
+      "lines": 5
+    },
+    {
+      "type": "experience",
+      "heading": "EXPERIENCE",
+      "lines": 7
+    },
+    {
+      "type": "education",
+      "heading": "EDUCATION",
+      "lines": 2
+    }
+  ],
+  "experience": [
+    {
+      "title": "Senior Software Engineer",
+      "company": "Stripe",
+      "location": null,
+      "dates": {
+        "start": "2021",
+        "end": null,
+        "isCurrent": true
+      },
+      "bullets": [
+        "Cut p99 latency by 42%",
+        "Migrated 120 services"
+      ]
+    },
+    {
+      "title": "Software Engineer",
+      "company": "Twilio",
+      "location": null,
+      "dates": {
+        "start": "2018",
+        "end": "2020",
+        "isCurrent": false
+      },
+      "bullets": [
+        "Served 1,200,000 req/min"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "degree": "B.S.",
+      "field": "Computer Science",
+      "institution": "UC Berkeley",
+      "dates": {
+        "start": "2018",
+        "end": null,
+        "isCurrent": false
+      },
+      "gpa": null,
+      "honors": []
+    }
+  ],
+  "projects": [],
+  "certifications": [],
+  "skills": [
+    "Go",
+    "Python",
+    "Kubernetes",
+    "PostgreSQL",
+    "AWS"
+  ],
+  "summary": null
+}

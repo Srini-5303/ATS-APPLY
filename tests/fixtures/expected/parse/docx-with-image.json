@@ -1,0 +1,59 @@
+{
+  "contact": {
+    "name": "ALEX MORGAN",
+    "email": "alex.morgan@example.com",
+    "phone": "(415) 555-0142",
+    "linkedin": "linkedin.com/in/alexmorgan",
+    "github": "github.com/alexmorgan",
+    "website": null,
+    "location": "San Francisco, CA"
+  },
+  "metadata": {
+    "fileType": "docx",
+    "pageCount": 1,
+    "wordCount": 80,
+    "lineCount": 10,
+    "hasMultipleColumns": false,
+    "hasTables": false,
+    "hasImages": true
+  },
+  "sections": [
+    {
+      "type": "contact",
+      "heading": null,
+      "lines": 3
+    },
+    {
+      "type": "summary",
+      "heading": "SUMMARY",
+      "lines": 1
+    },
+    {
+      "type": "experience",
+      "heading": "EXPERIENCE",
+      "lines": 4
+    }
+  ],
+  "experience": [
+    {
+      "title": "Senior Software Engineer",
+      "company": "Stripe",
+      "location": "San Francisco, CA",
+      "dates": {
+        "start": "2021-01",
+        "end": null,
+        "isCurrent": true
+      },
+      "bullets": [
+        "Reduced p99 checkout latency by 42% by rewriting the settlement pipeline in Go",
+        "Led migration of 120 services to Kubernetes, cutting deploy time from 45 to 6 minutes",
+        "Mentored 5 engineers; 3 were promoted within 18 months"
+      ]
+    }
+  ],
+  "education": [],
+  "projects": [],
+  "certifications": [],
+  "skills": [],
+  "summary": "Senior backend engineer with 8 years building distributed systems at scale."
+}

@@ -124,6 +124,13 @@ export interface PositionedItem {
 	width: number;
 	height: number;
 	page: number;
+	/**
+	 * Zero-based column index within the page, assigned by `analyzeColumns`.
+	 *
+	 * Line reconstruction sorts by (page, column, y), so a two-column page is read one column
+	 * at a time rather than interleaved across the gutter. Absent means single column.
+	 */
+	column?: number;
 }
 
 export interface RawExtraction {

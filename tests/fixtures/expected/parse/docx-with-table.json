@@ -1,0 +1,63 @@
+{
+  "contact": {
+    "name": "ALEX MORGAN",
+    "email": null,
+    "phone": null,
+    "linkedin": null,
+    "github": null,
+    "website": null,
+    "location": null
+  },
+  "metadata": {
+    "fileType": "docx",
+    "pageCount": 1,
+    "wordCount": 9,
+    "lineCount": 8,
+    "hasMultipleColumns": false,
+    "hasTables": true,
+    "hasImages": false
+  },
+  "sections": [
+    {
+      "type": "contact",
+      "heading": null,
+      "lines": 1
+    },
+    {
+      "type": "skills",
+      "heading": "SKILLS",
+      "lines": 0
+    },
+    {
+      "type": "languages",
+      "heading": "Language",
+      "lines": 0
+    },
+    {
+      "type": "unknown",
+      "heading": "Level",
+      "lines": 0
+    },
+    {
+      "type": "unknown",
+      "heading": "Go",
+      "lines": 0
+    },
+    {
+      "type": "unknown",
+      "heading": "Expert",
+      "lines": 0
+    },
+    {
+      "type": "unknown",
+      "heading": "Python",
+      "lines": 1
+    }
+  ],
+  "experience": [],
+  "education": [],
+  "projects": [],
+  "certifications": [],
+  "skills": [],
+  "summary": null
+}

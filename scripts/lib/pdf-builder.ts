@@ -29,8 +29,67 @@ export interface PageSpec {
 	image?: { x: number; y: number; width: number; height: number };
 }
 
+/**
+ * WinAnsiEncoding code points that differ from Latin-1.
+ *
+ * Without this, `Buffer.from(s, 'latin1')` silently drops any character above U+00FF — a
+ * curly apostrophe in "Dean's List" vanished entirely, producing "Dean s List" in the
+ * fixture and quietly weakening every test that read it.
+ */
+const WIN_ANSI: ReadonlyMap<string, number> = new Map([
+	['€', 0x80], // €
+	['‚', 0x82],
+	['ƒ', 0x83],
+	['„', 0x84],
+	['…', 0x85], // …
+	['†', 0x86],
+	['‡', 0x87],
+	['ˆ', 0x88],
+	['‰', 0x89],
+	['Š', 0x8a],
+	['‹', 0x8b],
+	['Œ', 0x8c], // Œ
+	['Ž', 0x8e],
+	['‘', 0x91], // ‘
+	['’', 0x92], // ’
+	['“', 0x93], // “
+	['”', 0x94], // ”
+	['•', 0x95], // •
+	['–', 0x96], // –
+	['—', 0x97], // —
+	['˜', 0x98],
+	['™', 0x99],
+	['š', 0x9a],
+	['›', 0x9b],
+	['œ', 0x9c], // œ
+	['ž', 0x9e],
+	['Ÿ', 0x9f]
+]);
+
+/** Encodes to WinAnsi, so the bytes written match the font encoding declared on the page. */
+function toWinAnsi(s: string): string {
+	let out = '';
+	for (const char of s) {
+		const mapped = WIN_ANSI.get(char);
+		if (mapped !== undefined) {
+			out += String.fromCharCode(mapped);
+			continue;
+		}
+		if (char.charCodeAt(0) <= 0xff) {
+			out += char;
+			continue;
+		}
+		// Anything else has no glyph in a base-14 font. Fail loudly rather than emitting a
+		// fixture that silently differs from what the test author wrote.
+		throw new Error(
+			`Character ${JSON.stringify(char)} (U+${char.charCodeAt(0).toString(16).toUpperCase()}) cannot be encoded in WinAnsi. Base-14 fonts have no glyph for it.`
+		);
+	}
+	return out;
+}
+
 function escapePdfText(s: string): string {
-	return s.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+	return toWinAnsi(s).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
 }
 
 function buildContentStream(page: PageSpec): string {

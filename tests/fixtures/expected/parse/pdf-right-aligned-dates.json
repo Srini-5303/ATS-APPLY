@@ -1,0 +1,84 @@
+{
+  "contact": {
+    "name": "ALEX MORGAN",
+    "email": "alex.morgan@example.com",
+    "phone": null,
+    "linkedin": null,
+    "github": null,
+    "website": null,
+    "location": "Senior Software Engineer, Stripe Jan"
+  },
+  "metadata": {
+    "fileType": "pdf",
+    "pageCount": 1,
+    "wordCount": 52,
+    "lineCount": 10,
+    "hasMultipleColumns": false,
+    "hasTables": false,
+    "hasImages": false
+  },
+  "sections": [
+    {
+      "type": "contact",
+      "heading": null,
+      "lines": 2
+    },
+    {
+      "type": "experience",
+      "heading": "EXPERIENCE",
+      "lines": 5
+    },
+    {
+      "type": "education",
+      "heading": "EDUCATION",
+      "lines": 1
+    }
+  ],
+  "experience": [
+    {
+      "title": "Senior Software Engineer",
+      "company": "Stripe",
+      "location": null,
+      "dates": {
+        "start": "2021-01",
+        "end": null,
+        "isCurrent": true
+      },
+      "bullets": [
+        "Reduced p99 checkout latency by 42%",
+        "Led migration of 120 services to Kubernetes"
+      ]
+    },
+    {
+      "title": "Software Engineer",
+      "company": "Twilio",
+      "location": null,
+      "dates": {
+        "start": "2018-06",
+        "end": "2020-12",
+        "isCurrent": false
+      },
+      "bullets": [
+        "Built a rate limiter serving 1.2M requests per minute"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "degree": "B.S.",
+      "field": "Computer Science, UC Berkeley 2018",
+      "institution": "UC Berkeley",
+      "dates": {
+        "start": "2018",
+        "end": null,
+        "isCurrent": false
+      },
+      "gpa": null,
+      "honors": []
+    }
+  ],
+  "projects": [],
+  "certifications": [],
+  "skills": [],
+  "summary": null
+}

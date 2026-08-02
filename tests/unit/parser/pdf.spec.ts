@@ -83,12 +83,16 @@ describe('extractPdfGeometry', () => {
 		expect(glyphOnly.hasImages).toBe(false);
 	});
 
-	it('preserves ligatures and non-ASCII characters', async () => {
-		const geo = await extractPdfGeometry(load('ligatures-unicode'));
+	it('preserves accented characters and curly punctuation', async () => {
+		// Ligatures are deliberately not tested here: base-14 fonts have no glyph for U+FB01,
+		// so a fixture claiming to carry them was silently dropping them and asserting
+		// nothing. Ligature folding is a pure transform, covered in text.spec.ts.
+		const geo = await extractPdfGeometry(load('unicode-punctuation'));
 		const text = geo.items.map((i) => i.str).join(' ');
 
-		expect(text).toContain('Zo');
-		expect(text).toMatch(/Universit/);
+		expect(text).toContain('Zoë');
+		expect(text).toContain('München');
+		expect(text).toContain('’');
 	});
 
 	it('surfaces a two-column layout as two distinct x origins', async () => {

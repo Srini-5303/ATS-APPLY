@@ -1,0 +1,118 @@
+{
+  "contact": {
+    "name": "ALEX MORGAN",
+    "email": "alex.morgan@example.com",
+    "phone": "(415) 555-0142",
+    "linkedin": "linkedin.com/in/alexmorgan",
+    "github": "github.com/alexmorgan",
+    "website": null,
+    "location": "San Francisco, CA"
+  },
+  "metadata": {
+    "fileType": "pdf",
+    "pageCount": 1,
+    "wordCount": 185,
+    "lineCount": 22,
+    "hasMultipleColumns": false,
+    "hasTables": false,
+    "hasImages": false
+  },
+  "sections": [
+    {
+      "type": "contact",
+      "heading": null,
+      "lines": 3
+    },
+    {
+      "type": "summary",
+      "heading": "SUMMARY",
+      "lines": 1
+    },
+    {
+      "type": "experience",
+      "heading": "EXPERIENCE",
+      "lines": 10
+    },
+    {
+      "type": "education",
+      "heading": "EDUCATION",
+      "lines": 2
+    },
+    {
+      "type": "skills",
+      "heading": "SKILLS",
+      "lines": 2
+    }
+  ],
+  "experience": [
+    {
+      "title": "Senior Software Engineer",
+      "company": "Stripe",
+      "location": "San Francisco, CA",
+      "dates": {
+        "start": "2021-01",
+        "end": null,
+        "isCurrent": true
+      },
+      "bullets": [
+        "Reduced p99 checkout latency by 42% by rewriting the settlement pipeline in Go",
+        "Led migration of 120 services to Kubernetes, cutting deploy time from 45 to 6 minutes",
+        "Mentored 5 engineers; 3 were promoted within 18 months",
+        "Designed an idempotency layer processing $2.4 billion in annual volume"
+      ]
+    },
+    {
+      "title": "Software Engineer",
+      "company": "Twilio",
+      "location": "San Francisco, CA",
+      "dates": {
+        "start": "2018-06",
+        "end": "2020-12",
+        "isCurrent": false
+      },
+      "bullets": [
+        "Built a rate limiter serving 1,200,000 requests per minute at 99.99% availability",
+        "Cut infrastructure spend by $340,000 per year through capacity right-sizing",
+        "Automated release verification, eliminating 20 hours of manual QA per week",
+        "Shipped 14 customer-facing API endpoints adopted by 3,000 accounts"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "degree": "B.S.",
+      "field": "Computer Science",
+      "institution": "University of California",
+      "dates": {
+        "start": "2018",
+        "end": null,
+        "isCurrent": false
+      },
+      "gpa": "3.8",
+      "honors": [
+        "dean's list"
+      ]
+    }
+  ],
+  "projects": [],
+  "certifications": [],
+  "skills": [
+    "Go",
+    "Python",
+    "TypeScript",
+    "PostgreSQL",
+    "Redis",
+    "Kubernetes",
+    "Docker",
+    "AWS",
+    "Terraform",
+    "Kafka",
+    "gRPC",
+    "GraphQL",
+    "React",
+    "CI/CD",
+    "distributed systems",
+    "observability"
+  ],
+  "summary": "Senior backend engineer with 8 years building distributed systems at scale."
+}

@@ -1,0 +1,59 @@
+{
+  "contact": {
+    "name": "ALEX MORGAN",
+    "email": null,
+    "phone": null,
+    "linkedin": null,
+    "github": null,
+    "website": null,
+    "location": "Senior Software Engineer, Stripe"
+  },
+  "metadata": {
+    "fileType": "pdf",
+    "pageCount": 1,
+    "wordCount": 21,
+    "lineCount": 6,
+    "hasMultipleColumns": false,
+    "hasTables": false,
+    "hasImages": false
+  },
+  "sections": [
+    {
+      "type": "contact",
+      "heading": null,
+      "lines": 1
+    },
+    {
+      "type": "skills",
+      "heading": "SKILLS",
+      "lines": 1
+    },
+    {
+      "type": "experience",
+      "heading": "EXPERIENCE",
+      "lines": 2
+    }
+  ],
+  "experience": [
+    {
+      "title": "Senior Software Engineer",
+      "company": "Stripe",
+      "location": null,
+      "dates": {
+        "start": "2021",
+        "end": null,
+        "isCurrent": true
+      },
+      "bullets": [
+        "Reduced p99 checkout latency by 42%"
+      ]
+    }
+  ],
+  "education": [],
+  "projects": [],
+  "certifications": [],
+  "skills": [
+    "Go Python Kubernetes"
+  ],
+  "summary": null
+}

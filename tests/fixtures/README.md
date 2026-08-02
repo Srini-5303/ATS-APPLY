@@ -43,8 +43,29 @@ removes a guard.
 | `glyph-only-image`         | Image below the threshold → `hasImages` false                                        |
 | `three-page`               | Page-count penalty and the Workday truncation quirk                                  |
 | `small-font-tight-leading` | 8pt on 9.6pt leading — breaks a fixed 3px y-tolerance                                |
-| `ligatures-unicode`        | Ligatures and non-ASCII names survive normalisation                                  |
+| `unicode-punctuation`      | Curly punctuation and accented characters survive normalisation                      |
 | `all-caps-headers`         | Eight ALL-CAPS headers: good ATS practice vs PRD §7.4's uncapped penalty             |
+
+## DOCX fixtures
+
+Built by `scripts/lib/docx-builder.ts` (a hand-rolled ZIP + OOXML writer, same rationale).
+
+| Fixture      | Pins                                                                    |
+| ------------ | ----------------------------------------------------------------------- |
+| `clean`      | Baseline; must parse to the same structure as the PDF equivalent        |
+| `with-table` | A real `<w:tbl>` → `hasTables` true                                     |
+| `with-image` | An embedded image → `hasImages` true                                    |
+| `empty-body` | No extractable text → specific `EMPTY` error, not a silent zero score   |
+
+## A limitation worth knowing
+
+Base-14 PDF fonts have **no glyphs for typographic ligatures** (U+FB01 and friends). An
+earlier `ligatures-unicode` fixture claimed to test them, but the generator silently dropped
+them, so it asserted nothing. The builder now throws on any character it cannot encode.
+
+Ligature folding is a pure string transform and is covered directly in
+`tests/unit/parser/text.spec.ts`; the PDF fixture tests what only a PDF can — WinAnsi curly
+punctuation and accented characters.
 
 ## Expected outputs
 

@@ -1,5 +1,6 @@
 /// <reference lib="webworker" />
 
+import { DocxExtractionError, extractDocx } from '../docx';
 import { extractPdfGeometry, PdfExtractionError } from '../pdf';
 import type { ParseRequest, ParseResponse } from './protocol';
 
@@ -19,20 +20,14 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
 
 	void (async () => {
 		try {
-			if (kind !== 'pdf') {
-				reply({
-					id,
-					ok: false,
-					code: 'UNSUPPORTED_TYPE',
-					message: `Unsupported file kind: ${kind}`
-				});
+			if (kind === 'pdf') {
+				reply({ id, ok: true, kind: 'pdf', geometry: await extractPdfGeometry(buffer) });
 				return;
 			}
 
-			const geometry = await extractPdfGeometry(buffer);
-			reply({ id, ok: true, geometry });
+			reply({ id, ok: true, kind: 'docx', extraction: await extractDocx(buffer) });
 		} catch (err) {
-			if (err instanceof PdfExtractionError) {
+			if (err instanceof PdfExtractionError || err instanceof DocxExtractionError) {
 				reply({ id, ok: false, code: err.code, message: err.message });
 				return;
 			}

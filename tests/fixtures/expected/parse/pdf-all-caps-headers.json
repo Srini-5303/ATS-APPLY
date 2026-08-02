@@ -1,0 +1,114 @@
+{
+  "contact": {
+    "name": "ALEX MORGAN",
+    "email": null,
+    "phone": null,
+    "linkedin": null,
+    "github": null,
+    "website": null,
+    "location": "EXPERIENCE\nEngineer, Stripe"
+  },
+  "metadata": {
+    "fileType": "pdf",
+    "pageCount": 1,
+    "wordCount": 35,
+    "lineCount": 17,
+    "hasMultipleColumns": false,
+    "hasTables": false,
+    "hasImages": false
+  },
+  "sections": [
+    {
+      "type": "contact",
+      "heading": null,
+      "lines": 1
+    },
+    {
+      "type": "summary",
+      "heading": "SUMMARY",
+      "lines": 1
+    },
+    {
+      "type": "experience",
+      "heading": "EXPERIENCE",
+      "lines": 1
+    },
+    {
+      "type": "education",
+      "heading": "EDUCATION",
+      "lines": 1
+    },
+    {
+      "type": "skills",
+      "heading": "SKILLS",
+      "lines": 1
+    },
+    {
+      "type": "projects",
+      "heading": "PROJECTS",
+      "lines": 1
+    },
+    {
+      "type": "certifications",
+      "heading": "CERTIFICATIONS",
+      "lines": 1
+    },
+    {
+      "type": "awards",
+      "heading": "AWARDS",
+      "lines": 1
+    },
+    {
+      "type": "languages",
+      "heading": "LANGUAGES",
+      "lines": 1
+    }
+  ],
+  "experience": [
+    {
+      "title": "Engineer",
+      "company": "Stripe",
+      "location": null,
+      "dates": {
+        "start": "2021",
+        "end": null,
+        "isCurrent": true
+      },
+      "bullets": []
+    }
+  ],
+  "education": [
+    {
+      "degree": "B.S.",
+      "field": "CS, Berkeley, 2018",
+      "institution": "Berkeley",
+      "dates": {
+        "start": "2018",
+        "end": null,
+        "isCurrent": false
+      },
+      "gpa": null,
+      "honors": []
+    }
+  ],
+  "projects": [
+    {
+      "name": "Open source contributor",
+      "techStack": [],
+      "url": null,
+      "bullets": []
+    }
+  ],
+  "certifications": [
+    {
+      "name": "AWS Solutions Architect",
+      "issuer": null,
+      "date": null
+    }
+  ],
+  "skills": [
+    "Go",
+    "Python"
+  ],
+  "summary": "Backend engineer."
+}
