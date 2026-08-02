@@ -1,6 +1,40 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
+	import { buildShareQuery } from '$lib/share';
+	import { log } from '$lib/log';
+	import { resumeStore } from '$stores/resume.svelte';
 	import { scoresStore } from '$stores/scores.svelte';
 	import ScoreCard from './ScoreCard.svelte';
+
+	let exporting = $state(false);
+
+	const shareUrl = $derived(
+		`${resolve('/share')}?${buildShareQuery({
+			score: scoresStore.averageScore,
+			passing: scoresStore.passingCount,
+			delta: scoresStore.scoreDelta,
+			targeted: scoresStore.jobDescription.trim() !== ''
+		})}`
+	);
+
+	async function download() {
+		exporting = true;
+		try {
+			// jsPDF is ~350KB and most sessions never export, so it is loaded on demand.
+			const { exportReport } = await import('$utils/export-pdf');
+			await exportReport({
+				results: scoresStore.results,
+				averageScore: scoresStore.averageScore,
+				passingCount: scoresStore.passingCount,
+				...(resumeStore.file?.name === undefined ? {} : { fileName: resumeStore.file.name }),
+				targeted: scoresStore.jobDescription.trim() !== ''
+			});
+		} catch (err) {
+			log.error('pdf export failed', { err: err instanceof Error ? err.message : String(err) });
+		} finally {
+			exporting = false;
+		}
+	}
 </script>
 
 <section class="dashboard" data-testid="dashboard" aria-live="polite">
@@ -19,6 +53,14 @@
 				<dt>Spread</dt>
 				<dd data-testid="spread">{scoresStore.spread} pts</dd>
 			</div>
+			{#if scoresStore.scoreDelta !== null}
+				<div>
+					<dt>Since last scan</dt>
+					<dd class={scoresStore.scoreDelta > 0 ? 'up' : 'down'} data-testid="score-delta">
+						{scoresStore.scoreDelta > 0 ? '+' : ''}{scoresStore.scoreDelta}
+					</dd>
+				</div>
+			{/if}
 		</dl>
 	</div>
 
@@ -51,6 +93,21 @@
 			</ul>
 		</div>
 	{/if}
+
+	<div class="share-row">
+		<button
+			type="button"
+			onclick={() => void download()}
+			disabled={exporting}
+			data-testid="export-pdf"
+		>
+			{exporting ? 'Building PDF…' : 'Download PDF report'}
+		</button>
+		<!-- shareUrl is built with resolve('/share'); the rule cannot see through the template
+		     literal that appends the query string -->
+		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+		<a class="share-link" href={shareUrl} data-testid="share-link">Share this result</a>
+	</div>
 
 	<div class="grid">
 		{#each scoresStore.results as result (result.platformId)}
@@ -108,6 +165,14 @@
 		margin: 0;
 		font-family: var(--font-mono);
 		font-size: var(--text-xl);
+	}
+
+	.stats .up {
+		color: var(--color-green);
+	}
+
+	.stats .down {
+		color: var(--color-amber);
 	}
 
 	.provenance {
@@ -190,6 +255,34 @@
 		margin-left: auto;
 		font-size: var(--text-xs);
 		color: var(--color-text-tertiary);
+	}
+
+	.share-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-3);
+	}
+
+	.share-row button,
+	.share-link {
+		padding: var(--space-2) var(--space-5);
+		background: var(--glass-bg);
+		border: 1px solid var(--glass-border);
+		border-radius: var(--radius-full);
+		font-size: var(--text-sm);
+		color: var(--color-text-primary);
+		text-decoration: none;
+		cursor: pointer;
+	}
+
+	.share-row button:hover:not(:disabled),
+	.share-link:hover {
+		background: var(--glass-bg-hover);
+	}
+
+	.share-row button:disabled {
+		opacity: 0.5;
+		cursor: progress;
 	}
 
 	.grid {

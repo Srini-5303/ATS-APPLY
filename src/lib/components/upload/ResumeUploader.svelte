@@ -4,7 +4,6 @@
 
 	let { onparsed }: { onparsed?: () => void } = $props();
 
-	let fileInput: HTMLInputElement | null = $state(null);
 	let dragging = $state(false);
 
 	// Nothing here works until Svelte has attached the handlers. Surfacing that prevents a
@@ -32,66 +31,63 @@
 		dragging = false;
 		await accept(event.dataTransfer?.files[0]);
 	}
-
-	function openPicker() {
-		fileInput?.click();
-	}
-
-	function onKeydown(event: KeyboardEvent) {
-		if (event.key === 'Enter' || event.key === ' ') {
-			event.preventDefault();
-			openPicker();
-		}
-	}
 </script>
 
+<!--
+	A <label> wrapping a visually-hidden <input type="file"> rather than a div with
+	role="button".
+
+	The earlier version nested the input inside an element that was itself a button, which axe
+	flags as `nested-interactive` — and it left the input with no accessible name. This pattern
+	needs no custom key handling either: the input is the real control, so Enter and Space work
+	natively and focus lands somewhere meaningful.
+-->
 <div
 	class="dropzone"
 	class:dragging
 	class:busy={resumeStore.status === 'parsing'}
-	role="button"
-	tabindex="0"
-	aria-label="Upload your resume as a PDF or Word document"
-	aria-disabled={!ready}
 	data-ready={ready}
 	data-testid="uploader"
-	onclick={openPicker}
-	onkeydown={onKeydown}
 	ondragover={(e) => {
 		e.preventDefault();
 		dragging = true;
 	}}
-	ondragleave={() => (dragging = false)}
+	ondragleave={() => {
+		dragging = false;
+	}}
 	ondrop={onDrop}
+	role="presentation"
 >
-	<input
-		bind:this={fileInput}
-		type="file"
-		accept="application/pdf,.pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-		class="visually-hidden"
-		disabled={!ready}
-		onchange={onChange}
-		data-testid="file-input"
-		tabindex="-1"
-	/>
+	<label class="target">
+		<input
+			type="file"
+			accept="application/pdf,.pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+			class="visually-hidden"
+			disabled={!ready}
+			onchange={onChange}
+			data-testid="file-input"
+		/>
 
-	{#if resumeStore.status === 'parsing'}
-		<p class="headline" data-testid="upload-parsing">Reading your resume…</p>
-		<p class="sub">Parsing happens in your browser. The file is never uploaded.</p>
-	{:else if resumeStore.isReady}
-		<p class="headline ok" data-testid="upload-done">
-			{resumeStore.file?.name ?? 'Resume'} parsed
-		</p>
-		<p class="sub">
-			{resumeStore.resume?.metadata.wordCount ?? 0} words ·
-			{resumeStore.resume?.metadata.pageCount ?? 0} page(s) ·
-			{resumeStore.resume?.sections.length ?? 0} sections ·
-			{resumeStore.resume?.skills.length ?? 0} skills
-		</p>
-	{:else}
-		<p class="headline">Drop a PDF or Word file here, or click to choose</p>
-		<p class="sub">Up to 10 MB. Parsed in your browser — the file never leaves your device.</p>
-	{/if}
+		{#if resumeStore.status === 'parsing'}
+			<span class="headline" data-testid="upload-parsing">Reading your resume…</span>
+			<span class="sub">Parsing happens in your browser. The file is never uploaded.</span>
+		{:else if resumeStore.isReady}
+			<span class="headline ok" data-testid="upload-done">
+				{resumeStore.file?.name ?? 'Resume'} parsed
+			</span>
+			<span class="sub">
+				{resumeStore.resume?.metadata.wordCount ?? 0} words ·
+				{resumeStore.resume?.metadata.pageCount ?? 0} page(s) ·
+				{resumeStore.resume?.sections.length ?? 0} sections ·
+				{resumeStore.resume?.skills.length ?? 0} skills
+			</span>
+		{:else}
+			<span class="headline">Upload your resume</span>
+			<span class="sub">
+				Drop a PDF or Word file here, or click to choose. Up to 10 MB, parsed in your browser.
+			</span>
+		{/if}
+	</label>
 </div>
 
 {#if resumeStore.error}
@@ -103,15 +99,6 @@
 
 <style>
 	.dropzone {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: var(--space-2);
-		min-height: 11rem;
-		padding: var(--space-8);
-		text-align: center;
-		cursor: pointer;
 		background: var(--glass-bg);
 		border: 1.5px dashed var(--glass-border);
 		border-radius: var(--radius-lg);
@@ -126,8 +113,27 @@
 		border-color: var(--color-cyan);
 	}
 
-	.busy {
+	/* The label is the click target, so it fills the zone. */
+	.target {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: var(--space-2);
+		min-height: 11rem;
+		padding: var(--space-8);
+		text-align: center;
+		cursor: pointer;
+	}
+
+	.busy .target {
 		cursor: progress;
+	}
+
+	/* Focus lives on the hidden input, so the ring has to be drawn on its container. */
+	.dropzone:has(input:focus-visible) {
+		outline: 2px solid var(--color-cyan);
+		outline-offset: 2px;
 	}
 
 	.headline {
@@ -141,7 +147,7 @@
 
 	.sub {
 		font-size: var(--text-sm);
-		color: var(--color-text-tertiary);
+		color: var(--color-text-secondary);
 	}
 
 	.error {

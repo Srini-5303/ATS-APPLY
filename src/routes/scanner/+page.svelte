@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import JobDescriptionInput from '$components/upload/JobDescriptionInput.svelte';
 	import ResumeUploader from '$components/upload/ResumeUploader.svelte';
 	import ScoreDashboard from '$components/scoring/ScoreDashboard.svelte';
@@ -20,13 +21,18 @@
 
 	let pasted = $state('');
 
+	// Seeds previousScan so the first scan of a session can still show a delta.
+	onMount(() => {
+		void scoresStore.loadHistory();
+	});
+
 	function runScore() {
 		const resume = resumeStore.resume;
 		if (!resume) return;
 
 		// Deterministic scores render immediately; refinement adjusts them in place when it
 		// arrives, so there is never a spinner standing in for results (ADR 0001 §2).
-		scoresStore.score(resume);
+		scoresStore.score(resume, resumeStore.file?.name);
 		void scoresStore.refine(resume);
 	}
 

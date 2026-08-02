@@ -3,6 +3,11 @@
 	import { resolve } from '$app/paths';
 </script>
 
+<svelte:head>
+	<title>{page.status} — ATS Screener</title>
+	<meta name="robots" content="noindex" />
+</svelte:head>
+
 <div class="wrap">
 	<p class="status">{page.status}</p>
 	<h1>Something went wrong</h1>

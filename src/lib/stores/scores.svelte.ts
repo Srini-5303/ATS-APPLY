@@ -4,6 +4,8 @@ import { refineScores } from '$engine/llm/client';
 import { scoreResume } from '$engine/scorer';
 import { toScoringInput } from '$engine/scorer/to-scoring-input';
 import { log } from '$lib/log';
+import { LocalHistoryStorage } from './persistence/local';
+import type { HistoryStorage, ScanHistoryEntry } from './persistence/types';
 
 export type ScoreStatus = 'idle' | 'scoring' | 'done';
 
@@ -26,7 +28,23 @@ class ScoresStore {
 	/** Absolute epoch ms at which a rate-limited caller may retry. */
 	retryAtMs = $state<number | null>(null);
 
+	/** Past scans, newest first. */
+	history = $state<ScanHistoryEntry[]>([]);
+
+	/**
+	 * The scan the current results are compared against.
+	 *
+	 * PRD §11.2 snapshotted this from the in-memory results inside `startScoring()`, so on a
+	 * fresh page load there was nothing to snapshot and the first scan of every session showed
+	 * no delta even when history existed. Seeded from storage instead.
+	 */
+	previousScan = $state<ScanHistoryEntry | null>(null);
+
+	/** True while viewing a stored scan rather than a live one. */
+	viewingHistory = $state(false);
+
 	private controller: AbortController | null = null;
+	private storage: HistoryStorage = new LocalHistoryStorage();
 
 	get hasResults(): boolean {
 		return this.results.length > 0;
@@ -83,8 +101,12 @@ class ScoresStore {
 	 * server and completes in well under 100 ms — the user sees results immediately rather
 	 * than watching a spinner (ADR 0001 §2).
 	 */
-	score(resume: ParsedResume): void {
+	score(resume: ParsedResume, fileName?: string): void {
 		this.cancelRefinement();
+
+		// Snapshot before overwriting, falling back to the most recent stored scan so the very
+		// first scan of a session still shows a delta.
+		this.previousScan = this.currentAsEntry() ?? this.history[0] ?? null;
 
 		this.status = 'scoring';
 		this.results = scoreResume(toScoringInput(resume, this.jobDescription));
@@ -92,6 +114,66 @@ class ScoresStore {
 		this.provider = 'rule-based';
 		this.refinementUnavailable = false;
 		this.retryAtMs = null;
+		this.viewingHistory = false;
+
+		void this.persist(fileName);
+	}
+
+	/** Score change against the previous scan, or null when there is nothing to compare. */
+	get scoreDelta(): number | null {
+		if (!this.previousScan || this.results.length === 0) return null;
+		const delta = this.averageScore - this.previousScan.averageScore;
+		return delta === 0 ? null : delta;
+	}
+
+	async loadHistory(): Promise<void> {
+		this.history = await this.storage.list();
+		this.previousScan ??= this.history[0] ?? null;
+	}
+
+	/** Displays a stored scan without touching the live parse. */
+	view(entry: ScanHistoryEntry): void {
+		this.cancelRefinement();
+		this.results = entry.results;
+		this.status = 'done';
+		this.provider = 'rule-based';
+		this.viewingHistory = true;
+	}
+
+	async removeFromHistory(id: string): Promise<void> {
+		await this.storage.remove(id);
+		await this.loadHistory();
+	}
+
+	async clearHistory(): Promise<void> {
+		await this.storage.clear();
+		this.history = [];
+		this.previousScan = null;
+	}
+
+	private currentAsEntry(fileName?: string): ScanHistoryEntry | null {
+		if (this.results.length === 0) return null;
+
+		const snippet = this.jobDescription.trim().slice(0, 200);
+
+		return {
+			id: crypto.randomUUID(),
+			timestamp: new Date().toISOString(),
+			mode: snippet === '' ? 'general' : 'targeted',
+			averageScore: this.averageScore,
+			passingCount: this.passingCount,
+			results: this.results,
+			...(fileName === undefined ? {} : { fileName }),
+			...(snippet === '' ? {} : { jobDescriptionSnippet: snippet })
+		};
+	}
+
+	private async persist(fileName?: string): Promise<void> {
+		const entry = this.currentAsEntry(fileName);
+		if (!entry) return;
+
+		await this.storage.save(entry);
+		await this.loadHistory();
 	}
 
 	/**
@@ -157,6 +239,9 @@ class ScoresStore {
 		this.provider = null;
 		this.refinementUnavailable = false;
 		this.retryAtMs = null;
+		this.viewingHistory = false;
+		// History and previousScan deliberately survive: "scan another" starts a new scan, it
+		// does not erase what came before.
 	}
 }
 

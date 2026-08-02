@@ -26,9 +26,11 @@
 		"fixtures": "tsx scripts/make-fixtures.ts",
 		"validate": "run-s check lint format:check test build",
 		"gate": "pnpm validate",
-		"prepare": "tsx scripts/copy-pdf-assets.ts && svelte-kit sync"
+		"prepare": "tsx scripts/copy-pdf-assets.ts && svelte-kit sync",
+		"check:bundle": "tsx scripts/check-bundle.ts"
 	},
 	"devDependencies": {
+		"@axe-core/playwright": "^4.12.1",
 		"@eslint/js": "^9.39.0",
 		"@playwright/test": "^1.62.1",
 		"@sveltejs/adapter-node": "^5.4.0",
@@ -58,6 +60,7 @@
 		"vitest": "^3.2.7"
 	},
 	"dependencies": {
+		"jspdf": "^4.2.1",
 		"mammoth": "^1.12.0",
 		"pdfjs-dist": "4.10.38"
 	},

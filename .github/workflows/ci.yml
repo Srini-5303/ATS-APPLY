@@ -60,6 +60,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # build:app, not build — PRs should not pay for a docs build.
       - run: pnpm build:app
+      # Fails on size regression, and on a heavy dependency entering the first-load graph.
+      - run: pnpm check:bundle
 
   e2e:
     name: End-to-end tests
@@ -73,6 +75,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium firefox
+      # Includes the axe-core accessibility gate, which fails on any WCAG 2.1 AA violation.
       - run: pnpm test:e2e
       - uses: actions/upload-artifact@v4
         if: failure()

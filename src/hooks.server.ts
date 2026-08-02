@@ -1,4 +1,6 @@
+import { dev } from '$app/environment';
 import { log } from '$lib/log';
+import { buildCsp } from '$lib/server/csp';
 import type { Handle, HandleServerError } from '@sveltejs/kit';
 
 /** PRD §14.1. Applied to every response unless the route already set the header. */
@@ -26,6 +28,14 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// /api/og must be embeddable by social crawlers, so it is exempt (PRD §14.1).
 	if (!response.headers.has('Cross-Origin-Resource-Policy') && event.url.pathname !== '/api/og') {
 		response.headers.set('Cross-Origin-Resource-Policy', 'same-origin');
+	}
+
+	// Only on documents: a CSP on a JSON response does nothing but add bytes.
+	if (response.headers.get('content-type')?.includes('text/html')) {
+		// Report-only in development so a new violation does not break local work; enforced in
+		// production, which is the point of having a policy at all (ADR 0001, §14.2 note).
+		const csp = buildCsp({ enforce: !dev, reportUri: '/api/csp-report' });
+		if (!response.headers.has(csp.header)) response.headers.set(csp.header, csp.value);
 	}
 
 	return response;
