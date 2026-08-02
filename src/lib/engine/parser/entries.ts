@@ -3,54 +3,136 @@ import type {
 	EducationEntry,
 	ExperienceEntry,
 	ProjectEntry,
-	ResumeSection
+	ResumeSection,
+	SectionLine
 } from '../types/parser';
 import { extractDateRange, hasDate } from './dates';
+import { findPlace } from './location';
 import { isBulletLine, stripBullet } from './text';
 
 /** Structured entry extraction (PRD §5.8). */
 
-/** Splits a section's lines into one block per entry. */
-function splitEntries(content: string[]): string[][] {
-	const blocks: string[][] = [];
-	let current: string[] = [];
+/**
+ * Groups a section's lines into one block per entry, using indentation.
+ *
+ * Resumes mark entries two ways. Most put an undecorated header line above indented bullets.
+ * LaTeX templates instead bullet the header too, at a shallower depth than the achievements
+ * beneath it:
+ *
+ *     x=36  * AI Intern | Databricks            <- entry header
+ *     x=44    Brightstar Lottery  2026-Present  <- employer and dates
+ *     x=56      o Engineered a pipeline...      <- achievement
+ *     x=66        applying chunk-level keys     <- wrapped continuation
+ *
+ * Treating every bullet the same way turns that whole role into four unrelated achievements
+ * with no title. Two distinct bullet depths mean the shallower one marks entries; a single
+ * depth means every bullet is content.
+ */
+interface EntryBlock {
+	/** Non-bullet lines plus the entry-level bullet, i.e. title / employer / dates. */
+	header: string[];
+	/** Achievement bullets, with wrapped continuations folded back in. */
+	bullets: string[];
+}
 
-	for (const raw of content) {
-		const line = raw.trim();
-		if (line === '') {
-			if (current.length > 0) blocks.push(current);
-			current = [];
-			continue;
+/** Lines within this many units of each other are at the same depth. */
+const INDENT_TOLERANCE = 4;
+
+function bulletDepths(content: SectionLine[]): number[] {
+	const depths: number[] = [];
+
+	for (const line of content) {
+		if (!isBulletLine(line.text)) continue;
+		if (!depths.some((d) => Math.abs(d - line.indent) <= INDENT_TOLERANCE)) {
+			depths.push(line.indent);
 		}
-
-		// A dated, non-bullet line starts a new role — that is the conventional entry header.
-		const startsNewEntry = !isBulletLine(line) && hasDate(line) && current.length > 0;
-		const currentHasBullets = current.some((l) => isBulletLine(l));
-
-		if (startsNewEntry && currentHasBullets) {
-			// Carry back any trailing header lines. A role is often written as
-			//   Software Engineer
-			//   Twilio | 2018 - 2020
-			// and the split fires on the dated line, so without this the title is orphaned
-			// into the previous block and the new role reports its employer as its title.
-			const carried: string[] = [];
-			while (current.length > 0) {
-				const last = current.at(-1);
-				if (last === undefined || isBulletLine(last) || hasDate(last)) break;
-				carried.unshift(last);
-				current.pop();
-			}
-
-			blocks.push(current);
-			current = [...carried, line];
-			continue;
-		}
-
-		current.push(line);
 	}
 
-	if (current.length > 0) blocks.push(current);
-	return blocks;
+	return depths.sort((a, b) => a - b);
+}
+
+function splitEntries(content: SectionLine[], bulletsStartEntries = false): EntryBlock[] {
+	const depths = bulletDepths(content);
+
+	// Only a nested section uses its outer bullet level as an entry marker — except in
+	// education, where each bullet *is* a degree and there are no achievement bullets beneath
+	// it to nest against.
+	const entryDepth =
+		depths.length >= 2 || (bulletsStartEntries && depths.length === 1) ? depths[0] : undefined;
+
+	const blocks: EntryBlock[] = [];
+
+	/**
+	 * Appends a new block and returns it. It does not touch `current` — assigning from inside
+	 * a closure defeats TypeScript's narrowing, so the caller does that explicitly.
+	 */
+	const open = (headerLine?: string): EntryBlock => {
+		const block: EntryBlock = {
+			header: headerLine === undefined ? [] : [headerLine],
+			bullets: []
+		};
+		blocks.push(block);
+		return block;
+	};
+
+	let current: EntryBlock | null = null;
+
+	for (const line of content) {
+		const text = line.text.trim();
+		if (text === '') continue;
+
+		const bullet = isBulletLine(text);
+		const atEntryDepth =
+			entryDepth !== undefined && Math.abs(line.indent - entryDepth) <= INDENT_TOLERANCE;
+
+		// A bullet at the outer depth opens a new entry.
+		if (bullet && atEntryDepth) {
+			current = open(stripBullet(text));
+			continue;
+		}
+
+		// Without nesting, fall back to the conventional signal: an undecorated dated line
+		// after a block that already has bullets.
+		if (
+			entryDepth === undefined &&
+			!bullet &&
+			hasDate(text) &&
+			current !== null &&
+			current.bullets.length > 0
+		) {
+			// Carry back any trailing header lines — a role written as "Title" then
+			// "Company | dates" would otherwise lose its title to the previous entry.
+			const carried: string[] = [];
+			while (current.header.length > 0) {
+				const last = current.header.at(-1);
+				if (last === undefined || hasDate(last)) break;
+				carried.unshift(last);
+				current.header.pop();
+			}
+			const next = open();
+			next.header.push(...carried, text);
+			current = next;
+			continue;
+		}
+
+		const block = (current ??= open());
+
+		if (bullet) {
+			block.bullets.push(stripBullet(text));
+			continue;
+		}
+
+		// A deeper, unbulleted line directly after a bullet is that bullet's wrapped tail.
+		const previous = block.bullets.at(-1);
+		if (previous !== undefined && entryDepth !== undefined && line.indent > entryDepth) {
+			block.bullets[block.bullets.length - 1] = `${previous} ${text}`;
+			continue;
+		}
+
+		block.header.push(text);
+	}
+
+	return blocks.filter((b) => b.header.length > 0 || b.bullets.length > 0);
 }
 
 const HEADER_SEPARATOR = /\s*(?:\||•|·|—|–| - |,\s)\s*/;
@@ -86,22 +168,30 @@ const TITLE_HINT =
 const COMPANY_HINT =
 	/\b(?:inc|llc|ltd|corp|corporation|company|co|gmbh|plc|group|labs|technologies|systems|solutions|university|college|hospital|institute)\b\.?/i;
 
-/** "City, ST" or "City, Country", matched inside a header line before it is split. */
-const LOCATION_PATTERN =
-	/\b\p{Lu}[\p{L}.'-]+(?:\s+\p{Lu}[\p{L}.'-]+)*,\s*(?:[A-Z]{2}\b|\p{Lu}\p{Ll}+)/u;
-
 /**
  * "Senior Software Engineer, Stripe" is a documented header format (PRD §5.8) and is
- * structurally identical to "San Francisco, CA" — so a bare comma pattern swallows the whole
- * title and leaves the role with no title and no company.
- *
- * A job title or a company suffix in the candidate means it is a header, not a place.
+ * structurally identical to "San Francisco, CA", so a job title or company suffix in the
+ * candidate rules it out as a place.
  */
 function findLocation(headerText: string): string | null {
-	const candidate = LOCATION_PATTERN.exec(headerText)?.[0];
-	if (!candidate) return null;
-	if (TITLE_HINT.test(candidate) || COMPANY_HINT.test(candidate)) return null;
-	return candidate;
+	return findPlace(headerText, (c) => TITLE_HINT.test(c) || COMPANY_HINT.test(c));
+}
+
+/** The employer on a line, with dates, location and an already-claimed title removed. */
+function companyFrom(
+	line: string,
+	location: string | null,
+	exclude?: string | null
+): string | null {
+	const parts = headerParts(location ? line.replace(location, '') : line);
+	const candidates = parts.filter((p) => p !== exclude);
+
+	return (
+		candidates.find((p) => COMPANY_HINT.test(p)) ??
+		candidates.find((p) => !TITLE_HINT.test(p)) ??
+		candidates[0] ??
+		null
+	);
 }
 
 export function extractExperience(sections: ResumeSection[]): ExperienceEntry[] {
@@ -109,26 +199,32 @@ export function extractExperience(sections: ResumeSection[]): ExperienceEntry[] 
 
 	return splitEntries(content)
 		.map((block) => {
-			const headerLines = block.filter((l) => !isBulletLine(l));
-			const bullets = block.filter((l) => isBulletLine(l)).map(stripBullet);
+			const headerLines = block.header;
+			const bullets = block.bullets;
 
+			const titleLine = headerLines[0] ?? '';
 			const dateLine = headerLines.find((l) => hasDate(l));
 			const dates = dateLine ? extractDateRange(dateLine) : null;
 
 			// Pull the location out before splitting: `headerParts` also splits on ", ", which
 			// would tear "San Francisco, CA" into two unrecognisable fragments.
-			const headerText = headerLines.slice(0, 2).join(' | ');
-			const location = findLocation(headerText);
-			const withoutLocation = location ? headerText.replace(location, '') : headerText;
+			// Checked per line: a location sits at the end of *its* line, and joining lines
+			// first buries it mid-string where the end-of-line rule no longer fires.
+			const location = headerLines.reduce<string | null>(
+				(found, line) => found ?? findLocation(line),
+				null
+			);
 
-			const parts = headerParts(withoutLocation);
-			const remaining = parts;
+			const titleParts = headerParts(location ? titleLine.replace(location, '') : titleLine);
+			const title = titleParts.find((p) => TITLE_HINT.test(p)) ?? titleParts[0] ?? null;
 
-			const title = remaining.find((p) => TITLE_HINT.test(p)) ?? remaining[0] ?? null;
+			// The employer sits with the dates in every layout that separates them — a title
+			// line often continues into a technology list, so mining it for the company picks
+			// up a stray keyword instead.
 			const company =
-				remaining.find((p) => p !== title && COMPANY_HINT.test(p)) ??
-				remaining.find((p) => p !== title) ??
-				null;
+				(dateLine !== undefined && dateLine !== titleLine
+					? companyFrom(dateLine, location)
+					: null) ?? companyFrom(titleLine, location, title);
 
 			return { title, company, location, dates, bullets };
 		})
@@ -139,6 +235,9 @@ const DEGREE =
 	/\b(ph\.?d\.?|doctor(?:ate)?|d\.?phil|master(?:'s)?(?:\s+of\s+\w+)?|m\.?b\.?a|m\.?sc?|m\.?a|m\.?eng|bachelor(?:'s)?(?:\s+of\s+\w+)?|b\.?sc?|b\.?a|b\.?eng|b\.?tech|associate(?:'s)?|a\.?a|a\.?s|diploma|certificate)\b\.?/i;
 
 const GPA = /\bgpa\b[:\s]*([0-4](?:\.\d{1,2})?)(?:\s*\/\s*([0-5](?:\.\d{1,2})?))?/i;
+
+/** A trailing ", XX" state or country code, which collides with MA / MS / BA / BS degrees. */
+const STATE_CODE = /,\s*[A-Z]{2}\b/g;
 
 const HONORS = [
 	'summa cum laude',
@@ -177,17 +276,26 @@ const INSTITUTION_WORD = /\b(?:university|college|institute|school|academy|polyt
  * search alone picks up "University **of** California" and reports the field as "California".
  */
 function extractField(block: string[], degree: string | null): string | null {
-	const header = block[0] ?? '';
+	// The degree is not always on the first line: LaTeX templates put the institution above it.
+	const degreeLine = degree ? (block.find((l) => l.includes(degree)) ?? block[0] ?? '') : '';
+	const header = degreeLine || (block[0] ?? '');
 
 	if (degree) {
 		// The segment containing the degree, minus the degree token itself.
 		const segment = header.split(/\s*[|•·]\s*/).find((s) => s.includes(degree));
 		if (segment) {
-			const rest = segment
-				.replace(degree, '')
-				.replace(/^\s*(?:in|of)\s+/i, '')
-				.replace(/[,;]\s*$/, '')
+			// Everything from a semicolon, parenthesis or year onward is detail rather than the
+			// field: "M.S. in Artificial Intelligence; GPA: 3.75 Sept 2024" must not carry the
+			// GPA and dates along with it.
+			const rest = (
+				segment
+					.replace(degree, '')
+					.replace(/^\s*(?:in|of)\s+/i, '')
+					.split(/[;(]|\b(?:19|20)\d{2}\b/)[0] ?? ''
+			)
+				.replace(/[,;:]\s*$/, '')
 				.trim();
+
 			if (rest !== '' && rest.length <= 60 && !INSTITUTION_WORD.test(rest)) return rest;
 		}
 	}
@@ -213,22 +321,29 @@ function extractField(block: string[], degree: string | null): string | null {
 export function extractEducation(sections: ResumeSection[]): EducationEntry[] {
 	const content = sections.filter((s) => s.type === 'education').flatMap((s) => s.content);
 
-	return splitEntries(content)
+	return splitEntries(content, true)
 		.map((block) => {
-			const text = block.join(' ');
+			const lines = [...block.header, ...block.bullets];
+			const text = lines.join(' ');
 
-			const degreeMatch = DEGREE.exec(text);
+			// Only the trailing state code is removed, not the whole place: "Northeastern
+			// University Boston, MA" reads as a Master of Arts because "MA" matches the degree
+			// pattern and comes first — but stripping the entire match would take the
+			// institution with it.
+			const degreeText = text.replace(STATE_CODE, ' ');
+
+			const degreeMatch = DEGREE.exec(degreeText);
 			const degree = degreeMatch?.[0] ?? null;
 
-			const field = extractField(block, degree);
+			const field = extractField(lines, degree);
 
-			const parts = block.flatMap(headerParts);
+			const parts = lines.flatMap(headerParts);
 			const institution =
 				parts.find((p) => COMPANY_HINT.test(p) && !DEGREE.test(p)) ??
 				parts.find((p) => !DEGREE.test(p) && p !== field && !GPA.test(p)) ??
 				null;
 
-			const dateLine = block.find((l) => hasDate(l));
+			const dateLine = lines.find((l) => hasDate(l));
 			const dates = dateLine ? extractDateRange(dateLine) : null;
 
 			const gpaMatch = GPA.exec(text);
@@ -251,9 +366,9 @@ export function extractProjects(sections: ResumeSection[]): ProjectEntry[] {
 
 	return splitEntries(content)
 		.map((block) => {
-			const headerLines = block.filter((l) => !isBulletLine(l));
-			const bullets = block.filter((l) => isBulletLine(l)).map(stripBullet);
-			const text = block.join(' ');
+			const headerLines = block.header;
+			const bullets = block.bullets;
+			const text = [...block.header, ...block.bullets].join(' ');
 
 			const header = headerLines[0] ?? '';
 			const name = header.split(/\s*[|(–—]\s*/)[0]?.trim() ?? null;
@@ -262,7 +377,7 @@ export function extractProjects(sections: ResumeSection[]): ProjectEntry[] {
 			// The labelled form is matched per line: run against the joined block it swallows
 			// the following bullet too ("Go, Redis - Real-time ingest").
 			const parenthesised = /\(([^)]+)\)/.exec(header)?.[1];
-			const labelled = block
+			const labelled = [...block.header, ...block.bullets]
 				.map((line) => /(?:technologies|tech stack|built with|stack)\s*[:—-]\s*(.+)$/i.exec(line))
 				.find((m) => m !== null)?.[1];
 
@@ -286,7 +401,7 @@ export function extractCertifications(sections: ResumeSection[]): CertificationE
 
 	return content
 		.map((raw) => {
-			const line = stripBullet(raw).trim();
+			const line = stripBullet(raw.text).trim();
 			if (line === '') return null;
 
 			const parts = headerParts(line);

@@ -104,15 +104,28 @@ function joinLineItems(items: PositionedItem[], wideGap: number): string {
 	const ordered = [...items].sort((a, b) => a.x - b.x);
 	let text = '';
 	let prevEnd: number | null = null;
+	let prevHeight = 0;
 
 	for (const item of ordered) {
 		if (prevEnd !== null) {
 			const gap = item.x - prevEnd;
+
+			// A word space is roughly a quarter of the font size, so scale the threshold to the
+			// text rather than using a flat number. A LaTeX \textsc{} header renders its large
+			// initial and small-caps remainder as two font runs with a near-zero gap; a fixed
+			// threshold turned "EXPERIENCE" into "E XPERIENCE" and no section header matched.
+			const fontSize = Math.max(prevHeight, item.height);
+			const spaceThreshold = fontSize > 0 ? fontSize * 0.22 : 1;
+
 			if (gap > wideGap) text += '   ';
-			else if (gap > 0.5 || !text.endsWith(' ')) text += ' ';
+			else if (gap > spaceThreshold && !text.endsWith(' ') && !item.str.startsWith(' ')) {
+				text += ' ';
+			}
 		}
+
 		text += item.str;
 		prevEnd = item.x + item.width;
+		prevHeight = item.height;
 	}
 
 	return text.replace(/\s+/g, ' ').trim();

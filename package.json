@@ -27,7 +27,9 @@
 		"validate": "run-s check lint format:check test build",
 		"gate": "pnpm validate",
 		"prepare": "tsx scripts/copy-pdf-assets.ts && svelte-kit sync",
-		"check:bundle": "tsx scripts/check-bundle.ts"
+		"check:bundle": "tsx scripts/check-bundle.ts",
+		"smoke:llm": "tsx --env-file=.env scripts/smoke-llm.ts",
+		"smoke:api": "tsx scripts/smoke-api.ts"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "^4.12.1",

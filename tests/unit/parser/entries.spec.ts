@@ -6,9 +6,28 @@ import {
 	extractExperience,
 	extractProjects
 } from '$engine/parser/entries';
-import type { ResumeSection, SectionType } from '$engine/types/parser';
+import type { ResumeSection, SectionLine, SectionType } from '$engine/types/parser';
 
+/**
+ * Plain lines all sit at the same indent, which is the common single-bullet-level layout.
+ * Use `indented()` for the nested shape LaTeX templates produce.
+ */
 function section(type: SectionType, ...content: string[]): ResumeSection[] {
+	return build(
+		type,
+		content.map((text) => ({ text, indent: 0 }))
+	);
+}
+
+/** `[indent, text]` pairs, for sections that nest their bullets. */
+function indented(type: SectionType, ...content: [number, string][]): ResumeSection[] {
+	return build(
+		type,
+		content.map(([indent, text]) => ({ text, indent }))
+	);
+}
+
+function build(type: SectionType, content: SectionLine[]): ResumeSection[] {
 	return [{ type, heading: type.toUpperCase(), content, startLine: 0, endLine: content.length }];
 }
 
@@ -63,6 +82,54 @@ describe('extractExperience', () => {
 
 	it('returns nothing for an empty section', () => {
 		expect(extractExperience(section('experience'))).toEqual([]);
+	});
+
+	describe('nested bullets, as LaTeX templates emit', () => {
+		// The role header is itself bulleted, one level shallower than its achievements.
+		// Treating every bullet alike turned a whole role into unrelated achievements with no
+		// title — which is what a real resume hit in testing.
+		const latex = indented(
+			'experience',
+			[36, '• AI Intern | Databricks, Agent orchestration, RAG Providence, RI'],
+			[44, 'Brightstar Lottery June 2026 - Present'],
+			[56, '◦ Engineered a Databricks ingestion pipeline parsing SharePoint'],
+			[66, 'tables, applying deterministic chunk-level primary keys'],
+			[56, '◦ Deployed retrieval infrastructure on Vector Search'],
+			[36, '• Machine Learning Intern | DSL, NLP Evaluation Chennai, India'],
+			[44, 'TechConative October 2023 - April 2024'],
+			[56, '◦ Engineered an evaluation pipeline for DSL generation']
+		);
+
+		it('splits on the outer bullet depth', () => {
+			expect(extractExperience(latex)).toHaveLength(2);
+		});
+
+		it('reads the title and employer', () => {
+			const [first, second] = extractExperience(latex);
+
+			expect(first?.title).toContain('AI Intern');
+			expect(first?.company).toContain('Brightstar');
+			expect(second?.title).toContain('Machine Learning Intern');
+			expect(second?.company).toContain('TechConative');
+		});
+
+		it('keeps achievements as bullets rather than headers', () => {
+			const [first] = extractExperience(latex);
+			expect(first?.bullets).toHaveLength(2);
+			expect(first?.bullets[0]).toContain('Engineered');
+		});
+
+		it('folds a wrapped continuation back into its bullet', () => {
+			const [first] = extractExperience(latex);
+			// The x=66 line is the tail of the x=56 bullet, not a bullet of its own.
+			expect(first?.bullets[0]).toContain('chunk-level primary keys');
+		});
+
+		it('reads the dates from the employer line', () => {
+			const [first] = extractExperience(latex);
+			expect(first?.dates?.isCurrent).toBe(true);
+			expect(first?.dates?.start).toBe('2026-06');
+		});
 	});
 
 	it('keeps a role that has bullets but no recognisable header', () => {

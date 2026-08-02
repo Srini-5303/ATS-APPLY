@@ -9,10 +9,14 @@ import { DEFAULT_BUDGET_MS } from './llm/chain';
  * clear message rather than as an undefined threaded three layers deep.
  */
 
-/** Treats an unset variable and an empty one the same, which `??` alone cannot express. */
-function stringFrom(raw: string | undefined, fallback: string): string {
+/** An env var that is present but empty is treated as absent. */
+function optional(raw: string | undefined): string | undefined {
 	const trimmed = raw?.trim();
-	return trimmed === undefined || trimmed === '' ? fallback : trimmed;
+	return trimmed === undefined || trimmed === '' ? undefined : trimmed;
+}
+
+function stringFrom(raw: string | undefined, fallback: string): string {
+	return optional(raw) ?? fallback;
 }
 
 function intFrom(raw: string | undefined, fallback: number): number {
@@ -33,8 +37,12 @@ let cached: ServerConfig | null = null;
 export function serverConfig(): ServerConfig {
 	if (cached) return cached;
 
-	const geminiKey = env.GEMINI_API_KEY?.trim();
-	const groqKey = env.GROQ_API_KEY?.trim();
+	// Normalised to undefined so `??` behaves. An unset variable and one present but empty
+	// (`GEMINI_API_KEY=` in a .env) mean the same thing here, but `??` only falls through on
+	// null/undefined — leaving the empty string in place made `'' ?? groqKey` evaluate to `''`
+	// and reported "no providers configured" while Groq was working fine.
+	const geminiKey = optional(env.GEMINI_API_KEY);
+	const groqKey = optional(env.GROQ_API_KEY);
 
 	cached = {
 		gemini: geminiKey

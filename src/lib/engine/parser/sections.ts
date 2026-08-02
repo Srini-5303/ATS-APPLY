@@ -1,4 +1,10 @@
-import { SECTION_TYPES, type RawLine, type ResumeSection, type SectionType } from '../types/parser';
+import {
+	SECTION_TYPES,
+	type RawLine,
+	type ResumeSection,
+	type SectionLine,
+	type SectionType
+} from '../types/parser';
 import { hasDate } from './dates';
 import {
 	looksLikeAllCapsHeader,
@@ -102,6 +108,10 @@ function detectHeaders(lines: RawLine[]): HeaderHit[] {
 	return headers;
 }
 
+function toSectionLines(lines: RawLine[]): SectionLine[] {
+	return lines.map((l) => ({ text: l.text, indent: l.xStart }));
+}
+
 export function detectSections(lines: RawLine[]): ResumeSection[] {
 	const headers = detectHeaders(lines);
 
@@ -115,7 +125,7 @@ export function detectSections(lines: RawLine[]): ResumeSection[] {
 		sections.push({
 			type: 'contact',
 			heading: null,
-			content: lines.slice(0, firstHeaderIndex).map((l) => l.text),
+			content: toSectionLines(lines.slice(0, firstHeaderIndex)),
 			startLine: 0,
 			endLine: firstHeaderIndex - 1
 		});
@@ -123,7 +133,7 @@ export function detectSections(lines: RawLine[]): ResumeSection[] {
 
 	for (const [i, header] of headers.entries()) {
 		const nextIndex = headers[i + 1]?.index ?? lines.length;
-		const content = lines.slice(header.index + 1, nextIndex).map((l) => l.text);
+		const content = toSectionLines(lines.slice(header.index + 1, nextIndex));
 
 		sections.push({
 			type: header.type,
@@ -152,6 +162,6 @@ export function countSections(sections: ResumeSection[]): Record<SectionType, nu
 export function sectionText(sections: ResumeSection[], type: SectionType): string {
 	return sections
 		.filter((s) => s.type === type)
-		.flatMap((s) => s.content)
+		.flatMap((s) => s.content.map((line) => line.text))
 		.join('\n');
 }

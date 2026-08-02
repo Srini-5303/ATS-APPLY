@@ -6,7 +6,7 @@
     "linkedin": null,
     "github": null,
     "website": null,
-    "location": "EXPERIENCE\nEngineer, Stripe"
+    "location": null
   },
   "metadata": {
     "fileType": "pdf",
@@ -80,7 +80,7 @@
   "education": [
     {
       "degree": "B.S.",
-      "field": "CS, Berkeley, 2018",
+      "field": "CS, Berkeley",
       "institution": "Berkeley",
       "dates": {
         "start": "2018",

@@ -35,11 +35,24 @@ export interface DateRange {
 	isCurrent: boolean;
 }
 
+/**
+ * A line of section content with its horizontal position preserved.
+ *
+ * Indentation is structural, not cosmetic: a LaTeX resume marks role headers and their
+ * achievement bullets with the same glyph at different depths, so discarding x means the two
+ * cannot be told apart.
+ */
+export interface SectionLine {
+	text: string;
+	/** Left edge in PDF user-space units; 0 for text-derived input. */
+	indent: number;
+}
+
 export interface ResumeSection {
 	type: SectionType;
 	/** The header line as written in the resume, or null when inferred. */
 	heading: string | null;
-	content: string[];
+	content: SectionLine[];
 	startLine: number;
 	endLine: number;
 }

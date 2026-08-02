@@ -1,4 +1,5 @@
 import type { ContactInfo, RawLine } from '../types/parser';
+import { findPlace } from './location';
 import { looksLikePersonName } from './section-patterns';
 
 /**
@@ -31,9 +32,6 @@ const PHONE_CANDIDATE = new RegExp(
 const URL = /https?:\/\/[^\s,;]+|(?:www\.)[^\s,;]+/gi;
 const LINKEDIN = /(?:linkedin\.com|linked\s?in)[/\s]*(?:in[/\s]*)?([A-Za-z0-9_-]{3,})/i;
 const GITHUB = /github\.com[/\s]*([A-Za-z0-9_-]{2,})/i;
-
-const LOCATION =
-	/\b([A-Z][a-zA-Z.'-]+(?:\s+[A-Z][a-zA-Z.'-]+){0,2}),\s*([A-Z]{2}|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)(?:\s+\d{5}(?:-\d{4})?)?\b/;
 
 /** Years look like phone fragments; a plausible number has 10 digits, or 11 with a country code. */
 function isPlausiblePhone(raw: string): boolean {
@@ -102,8 +100,6 @@ export function extractContact(lines: RawLine[]): ContactInfo {
 			.map((m) => m[0].replace(/[.,;]$/, ''))
 			.find((u) => !/linkedin\.com|github\.com/i.test(u)) ?? null;
 
-	const locationMatch = LOCATION.exec(text);
-
 	return {
 		name: extractName(head),
 		email: EMAIL.exec(text)?.[0] ?? null,
@@ -111,6 +107,6 @@ export function extractContact(lines: RawLine[]): ContactInfo {
 		linkedin: linkedinMatch?.[1] ? `linkedin.com/in/${linkedinMatch[1]}` : null,
 		github: githubMatch?.[1] ? `github.com/${githubMatch[1]}` : null,
 		website,
-		location: locationMatch?.[0] ?? null
+		location: findPlace(text)
 	};
 }
