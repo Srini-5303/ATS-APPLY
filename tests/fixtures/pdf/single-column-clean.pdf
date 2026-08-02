@@ -1,0 +1,57 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1909 >>
+stream
+BT /F1 11 Tf 72 720 Td (ALEX MORGAN) Tj ET
+BT /F1 11 Tf 72 706 Td (alex.morgan@example.com | \(415\) 555-0142 | San Francisco, CA) Tj ET
+BT /F1 11 Tf 72 692 Td (linkedin.com/in/alexmorgan | github.com/alexmorgan) Tj ET
+BT /F1 11 Tf 72 664 Td (SUMMARY) Tj ET
+BT /F1 11 Tf 72 650 Td (Senior backend engineer with 8 years building distributed systems at scale.) Tj ET
+BT /F1 11 Tf 72 622 Td (EXPERIENCE) Tj ET
+BT /F1 11 Tf 72 608 Td (Senior Software Engineer | Stripe | San Francisco, CA | Jan 2021 - Present) Tj ET
+BT /F1 11 Tf 72 594 Td (- Reduced p99 checkout latency by 42% by rewriting the settlement pipeline in Go) Tj ET
+BT /F1 11 Tf 72 580 Td (- Led migration of 120 services to Kubernetes, cutting deploy time from 45 to 6 minutes) Tj ET
+BT /F1 11 Tf 72 566 Td (- Mentored 5 engineers; 3 were promoted within 18 months) Tj ET
+BT /F1 11 Tf 72 552 Td (- Designed an idempotency layer processing $2.4 billion in annual volume) Tj ET
+BT /F1 11 Tf 72 524 Td (Software Engineer | Twilio | San Francisco, CA | Jun 2018 - Dec 2020) Tj ET
+BT /F1 11 Tf 72 510 Td (- Built a rate limiter serving 1,200,000 requests per minute at 99.99% availability) Tj ET
+BT /F1 11 Tf 72 496 Td (- Cut infrastructure spend by $340,000 per year through capacity right-sizing) Tj ET
+BT /F1 11 Tf 72 482 Td (- Automated release verification, eliminating 20 hours of manual QA per week) Tj ET
+BT /F1 11 Tf 72 468 Td (- Shipped 14 customer-facing API endpoints adopted by 3,000 accounts) Tj ET
+BT /F1 11 Tf 72 440 Td (EDUCATION) Tj ET
+BT /F1 11 Tf 72 426 Td (B.S. Computer Science | University of California, Berkeley | 2018) Tj ET
+BT /F1 11 Tf 72 412 Td (GPA: 3.8 | Deans List) Tj ET
+BT /F1 11 Tf 72 384 Td (SKILLS) Tj ET
+BT /F1 11 Tf 72 370 Td (Go, Python, TypeScript, PostgreSQL, Redis, Kubernetes, Docker, AWS, Terraform,) Tj ET
+BT /F1 11 Tf 72 356 Td (Kafka, gRPC, GraphQL, React, CI/CD, distributed systems, observability) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000002212 00000 n 
+0000002309 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+2411
+%%EOF

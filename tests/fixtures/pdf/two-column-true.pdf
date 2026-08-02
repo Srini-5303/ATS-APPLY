@@ -1,0 +1,58 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1075 >>
+stream
+BT /F1 11 Tf 72 720 Td (ALEX MORGAN) Tj ET
+BT /F1 11 Tf 72 706 Td (Senior Engineer) Tj ET
+BT /F1 11 Tf 72 678 Td (CONTACT) Tj ET
+BT /F1 11 Tf 72 664 Td (alex@example.com) Tj ET
+BT /F1 11 Tf 72 650 Td (\(415\) 555-0142) Tj ET
+BT /F1 11 Tf 72 636 Td (San Francisco) Tj ET
+BT /F1 11 Tf 72 608 Td (SKILLS) Tj ET
+BT /F1 11 Tf 72 594 Td (Go) Tj ET
+BT /F1 11 Tf 72 580 Td (Python) Tj ET
+BT /F1 11 Tf 72 566 Td (Kubernetes) Tj ET
+BT /F1 11 Tf 72 552 Td (PostgreSQL) Tj ET
+BT /F1 11 Tf 72 538 Td (AWS) Tj ET
+BT /F1 11 Tf 252 720 Td (EXPERIENCE) Tj ET
+BT /F1 11 Tf 252 706 Td (Senior Software Engineer) Tj ET
+BT /F1 11 Tf 252 692 Td (Stripe | 2021 - Present) Tj ET
+BT /F1 11 Tf 252 678 Td (- Cut p99 latency by 42%) Tj ET
+BT /F1 11 Tf 252 664 Td (- Migrated 120 services) Tj ET
+BT /F1 11 Tf 252 636 Td (Software Engineer) Tj ET
+BT /F1 11 Tf 252 622 Td (Twilio | 2018 - 2020) Tj ET
+BT /F1 11 Tf 252 608 Td (- Served 1,200,000 req/min) Tj ET
+BT /F1 11 Tf 252 580 Td (EDUCATION) Tj ET
+BT /F1 11 Tf 252 566 Td (B.S. Computer Science) Tj ET
+BT /F1 11 Tf 252 552 Td (UC Berkeley, 2018) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000001378 00000 n 
+0000001475 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+1577
+%%EOF

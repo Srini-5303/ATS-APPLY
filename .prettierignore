@@ -1,0 +1,12 @@
+.svelte-kit/
+.vercel/
+build/
+dist/
+coverage/
+node_modules/
+playwright-report/
+test-results/
+static/
+pnpm-lock.yaml
+tests/fixtures/**/*.pdf
+tests/fixtures/**/*.docx

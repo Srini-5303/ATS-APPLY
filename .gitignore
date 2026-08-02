@@ -1,0 +1,28 @@
+node_modules/
+
+# Build output
+.svelte-kit/
+.vercel/
+build/
+dist/
+
+# Test artifacts
+coverage/
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+
+# Secrets — never commit. See .env.example for the full variable list.
+.env
+.env.*
+!.env.example
+
+# Generated from pdfjs-dist by scripts/copy-pdf-assets.ts on `prepare`
+static/pdfjs/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+*.log

@@ -1,0 +1,48 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 740 >>
+stream
+BT /F1 11 Tf 72 720 Td (ALEX MORGAN) Tj ET
+BT /F1 11 Tf 72 706 Td (alex.morgan@example.com) Tj ET
+BT /F1 11 Tf 72 678 Td (EXPERIENCE) Tj ET
+BT /F1 11 Tf 72 664 Td (Senior Software Engineer, Stripe) Tj ET
+BT /F1 11 Tf 72 650 Td (- Reduced p99 checkout latency by 42%) Tj ET
+BT /F1 11 Tf 72 636 Td (- Led migration of 120 services to Kubernetes) Tj ET
+BT /F1 11 Tf 72 608 Td (Software Engineer, Twilio) Tj ET
+BT /F1 11 Tf 72 594 Td (- Built a rate limiter serving 1.2M requests per minute) Tj ET
+BT /F1 11 Tf 72 566 Td (EDUCATION) Tj ET
+BT /F1 11 Tf 72 552 Td (B.S. Computer Science, UC Berkeley) Tj ET
+BT /F1 11 Tf 470 664 Td (Jan 2021 - Present) Tj ET
+BT /F1 11 Tf 470 608 Td (Jun 2018 - Dec 2020) Tj ET
+BT /F1 11 Tf 470 552 Td (2018) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000001042 00000 n 
+0000001139 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+1241
+%%EOF
