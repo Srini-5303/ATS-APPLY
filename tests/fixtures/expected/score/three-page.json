@@ -1,0 +1,88 @@
+[
+  {
+    "platform": "workday",
+    "overall": 75,
+    "passes": true,
+    "dimensions": {
+      "formatting": 87,
+      "keywordMatch": 53,
+      "sections": 100,
+      "experience": 100,
+      "education": 100,
+      "quantification": 100
+    },
+    "suggestions": [
+      "[critical] Cut the resume to two pages"
+    ]
+  },
+  {
+    "platform": "taleo",
+    "overall": 81,
+    "passes": true,
+    "dimensions": {
+      "formatting": 88,
+      "keywordMatch": 53,
+      "sections": 100,
+      "experience": 100,
+      "education": 100,
+      "quantification": 100
+    },
+    "suggestions": []
+  },
+  {
+    "platform": "icims",
+    "overall": 90,
+    "passes": true,
+    "dimensions": {
+      "formatting": 92,
+      "keywordMatch": 53,
+      "sections": 100,
+      "experience": 100,
+      "education": 100,
+      "quantification": 100
+    },
+    "suggestions": []
+  },
+  {
+    "platform": "greenhouse",
+    "overall": 96,
+    "passes": true,
+    "dimensions": {
+      "formatting": 94,
+      "keywordMatch": 53,
+      "sections": 100,
+      "experience": 100,
+      "education": 100,
+      "quantification": 100
+    },
+    "suggestions": []
+  },
+  {
+    "platform": "lever",
+    "overall": 97,
+    "passes": true,
+    "dimensions": {
+      "formatting": 95,
+      "keywordMatch": 53,
+      "sections": 100,
+      "experience": 100,
+      "education": 100,
+      "quantification": 100
+    },
+    "suggestions": []
+  },
+  {
+    "platform": "successfactors",
+    "overall": 85,
+    "passes": true,
+    "dimensions": {
+      "formatting": 88,
+      "keywordMatch": 53,
+      "sections": 100,
+      "experience": 100,
+      "education": 100,
+      "quantification": 100
+    },
+    "suggestions": []
+  }
+]

@@ -115,10 +115,10 @@ is absent from both the type and the UI.
 - Keep §7.9's quantification weight column exactly as authored — those rows already sum to
   1.0, so no weight vector changes.
 - Add a sixth `quantification` field to `ScoreBreakdown` and a sixth bar to `ScoreCard`.
-- `quantificationScore = min(100, (quantRatio / QUANT_SATURATION_RATIO) × 100)`, where
-  `QUANT_SATURATION_RATIO` is a named constant tuned during Phase 3 calibration. The PRD's
-  implied 0.4 saturates too early — a resume with 100% quantified bullets would score the
-  same as one with 40%.
+- `quantificationScore = min(100, (quantRatio / QUANT_SATURATION_RATIO) × 100)`. The PRD's
+  implied 0.4 saturated too early — a resume with 100% quantified bullets scored the same as
+  one with 40%. **Settled at 0.75** in the Phase 3 calibration pass: three bullets in four
+  must carry a concrete result for full marks.
 
 **Why.** Counted once, visible to the user, and tunable against real fixtures instead of a
 guessed constant.
@@ -282,6 +282,44 @@ country code), and reject candidates whose digit groups parse as a valid year pa
 
 Also unified: §5.6 describes a name as "2–5 alphabetic words" while §5.5 heuristic C excludes
 "2–3 TitleCase words" as a name. Both use 2–5.
+
+---
+
+---
+
+## Calibration outcome (Phase 3)
+
+Measured across the committed fixture corpus once all six dimensions were live. General mode
+(no job description):
+
+| Fixture                  | Average | Spread |
+| ------------------------ | ------- | ------ |
+| three-line-stub          | 14.0    | 29     |
+| all-caps-headers         | 50.8    | 29     |
+| two-column-true          | 63.5    | 16     |
+| with-logo-image          | 64.2    | 52     |
+| skills-three-column-list | 65.8    | 27     |
+| right-aligned-dates      | 84.3    | 34     |
+| unicode-punctuation      | 85.2    | 31     |
+| three-page               | 87.3    | 22     |
+| single-column-clean      | 89.8    | 15     |
+
+Both PRD §8.2 anchors are met: the three-line stub lands in the 10–25 band (it scored **58**
+under a literal reading of §7.5), and a strong resume lands in 75–95. Spread of 15–52 spans
+§8.2's 15–25 requirement.
+
+Targeted mode on `single-column-clean`:
+
+| Job description   | Keyword | Average | Taleo | Lever |
+| ----------------- | ------- | ------- | ----- | ----- |
+| backend-senior    | 76      | 95.5    | 91    | 100   |
+| marketing-manager | 0       | 75.0    | 64    | 86    |
+
+Taleo falls furthest on a keyword mismatch and Lever least, which is the behaviour §8.2 asks
+for and the exact inversion of what §7.5-as-written produced.
+
+These numbers are pinned by `tests/fixtures/expected/score/` and by the anchor assertions in
+`tests/unit/integration/golden-scores.spec.ts`.
 
 ---
 

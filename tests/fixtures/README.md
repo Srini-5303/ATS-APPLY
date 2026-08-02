@@ -50,12 +50,12 @@ removes a guard.
 
 Built by `scripts/lib/docx-builder.ts` (a hand-rolled ZIP + OOXML writer, same rationale).
 
-| Fixture      | Pins                                                                    |
-| ------------ | ----------------------------------------------------------------------- |
-| `clean`      | Baseline; must parse to the same structure as the PDF equivalent        |
-| `with-table` | A real `<w:tbl>` → `hasTables` true                                     |
-| `with-image` | An embedded image → `hasImages` true                                    |
-| `empty-body` | No extractable text → specific `EMPTY` error, not a silent zero score   |
+| Fixture      | Pins                                                                  |
+| ------------ | --------------------------------------------------------------------- |
+| `clean`      | Baseline; must parse to the same structure as the PDF equivalent      |
+| `with-table` | A real `<w:tbl>` → `hasTables` true                                   |
+| `with-image` | An embedded image → `hasImages` true                                  |
+| `empty-body` | No extractable text → specific `EMPTY` error, not a silent zero score |
 
 ## A limitation worth knowing
 

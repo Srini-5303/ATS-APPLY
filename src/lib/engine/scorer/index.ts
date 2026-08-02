@@ -11,7 +11,8 @@ import type {
 	Suggestion
 } from '../types/scoring';
 import { buildAnalysis } from './analyze';
-import { scoreEducationStub, scoreKeywordsStub, STUBBED_DIMENSIONS } from './dimensions/stubs';
+import { keywordsActive, scoreKeywords } from './dimensions/keywords';
+import { scoreEducation } from './dimensions/education';
 import { scoreExperience } from './dimensions/experience';
 import { scoreFormatting } from './dimensions/formatting';
 import { scoreQuantification } from './dimensions/quantification';
@@ -40,10 +41,10 @@ function clampScore(value: number): number {
 function buildBreakdown(analysis: ResumeAnalysis, profile: AtsProfile): ScoreBreakdown {
 	return {
 		formatting: scoreFormatting(analysis, profile),
-		keywordMatch: scoreKeywordsStub(),
+		keywordMatch: scoreKeywords(analysis, profile),
 		sections: scoreSections(analysis, profile),
 		experience: scoreExperience(analysis),
-		education: scoreEducationStub(),
+		education: scoreEducation(analysis),
 		quantification: scoreQuantification(analysis)
 	};
 }
@@ -99,7 +100,12 @@ export function scoreWithProfile(analysis: ResumeAnalysis, profile: AtsProfile):
 		DIMENSIONS.map((d) => [d, breakdown[d].score])
 	) as Record<Dimension, number>;
 
-	const weights = effectiveWeights(profile, STUBBED_DIMENSIONS);
+	// The keyword slot is dropped only when there is no JD *and* no identifiable industry —
+	// the single case where scoring it would mean inventing a number (ADR 0001 §1).
+	const inactive = new Set<Dimension>();
+	if (!keywordsActive(analysis)) inactive.add('keywordMatch');
+
+	const weights = effectiveWeights(profile, inactive);
 	const weighted = DIMENSIONS.reduce((sum, d) => sum + dimensionScores[d] * weights[d], 0);
 
 	const { adjustment, suggestions } = applyQuirks(
@@ -133,4 +139,3 @@ export function scoreResume(input: ScoringInput, options?: ScoreOptions): ScoreR
 
 export { buildAnalysis } from './analyze';
 export { ALL_PROFILES, PROFILES, validateProfiles } from './profiles';
-export { STUBBED_DIMENSIONS } from './dimensions/stubs';

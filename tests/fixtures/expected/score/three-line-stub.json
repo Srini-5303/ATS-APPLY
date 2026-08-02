@@ -1,0 +1,93 @@
+[
+  {
+    "platform": "workday",
+    "overall": 32,
+    "passes": false,
+    "dimensions": {
+      "formatting": 91,
+      "keywordMatch": 0,
+      "sections": 0,
+      "experience": 0,
+      "education": 0,
+      "quantification": 0
+    },
+    "suggestions": []
+  },
+  {
+    "platform": "taleo",
+    "overall": 3,
+    "passes": false,
+    "dimensions": {
+      "formatting": 92,
+      "keywordMatch": 0,
+      "sections": 0,
+      "experience": 0,
+      "education": 0,
+      "quantification": 0
+    },
+    "suggestions": [
+      "[critical] List more skills explicitly",
+      "[critical] Add the standard resume sections"
+    ]
+  },
+  {
+    "platform": "icims",
+    "overall": 20,
+    "passes": false,
+    "dimensions": {
+      "formatting": 94,
+      "keywordMatch": 0,
+      "sections": 0,
+      "experience": 0,
+      "education": 0,
+      "quantification": 0
+    },
+    "suggestions": []
+  },
+  {
+    "platform": "greenhouse",
+    "overall": 13,
+    "passes": false,
+    "dimensions": {
+      "formatting": 96,
+      "keywordMatch": 0,
+      "sections": 0,
+      "experience": 0,
+      "education": 0,
+      "quantification": 0
+    },
+    "suggestions": []
+  },
+  {
+    "platform": "lever",
+    "overall": 10,
+    "passes": false,
+    "dimensions": {
+      "formatting": 97,
+      "keywordMatch": 0,
+      "sections": 0,
+      "experience": 0,
+      "education": 0,
+      "quantification": 0
+    },
+    "suggestions": []
+  },
+  {
+    "platform": "successfactors",
+    "overall": 6,
+    "passes": false,
+    "dimensions": {
+      "formatting": 92,
+      "keywordMatch": 0,
+      "sections": 0,
+      "experience": 0,
+      "education": 0,
+      "quantification": 0
+    },
+    "suggestions": [
+      "[critical] Add start and end dates to every role",
+      "[high] Give each role a clear title, employer and date line",
+      "[high] Add the standard resume sections"
+    ]
+  }
+]

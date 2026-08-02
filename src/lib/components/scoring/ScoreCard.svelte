@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { STUBBED_DIMENSIONS } from '$engine/scorer/dimensions/stubs';
 	import { DIMENSIONS, type Dimension, type ScoreResult } from '$engine/types/scoring';
 
 	let { result }: { result: ScoreResult } = $props();
@@ -19,9 +18,14 @@
 		DIMENSIONS.map((d) => ({
 			dimension: d,
 			label: LABELS[d],
-			score: result.breakdown[d].score,
-			stubbed: STUBBED_DIMENSIONS.has(d)
+			score: result.breakdown[d].score
 		}))
+	);
+
+	// In general mode the keyword slot measures industry-vocabulary coverage rather than JD
+	// matching, so the bar is labelled for what it actually shows (ADR 0001 §1).
+	const keywordLabel = $derived(
+		result.breakdown.keywordMatch.isIndustryProxy ? 'Industry terms' : 'Keywords'
 	);
 
 	const RADIUS = 34;
@@ -65,21 +69,17 @@
 
 	<ul class="bars">
 		{#each bars as bar (bar.dimension)}
-			<li class:stubbed={bar.stubbed}>
-				<span class="bar-label">{bar.label}</span>
-				<span class="track-bar">
-					{#if !bar.stubbed}
-						<span class="fill" style:width="{bar.score}%"></span>
-					{/if}
+			<li>
+				<span class="bar-label">
+					{bar.dimension === 'keywordMatch' ? keywordLabel : bar.label}
 				</span>
-				<span class="bar-value">{bar.stubbed ? 'n/a' : bar.score}</span>
+				<span class="track-bar">
+					<span class="fill" style:width="{bar.score}%"></span>
+				</span>
+				<span class="bar-value">{bar.score}</span>
 			</li>
 		{/each}
 	</ul>
-
-	{#if bars.some((b) => b.stubbed)}
-		<p class="note">Keyword and education scoring are not implemented yet.</p>
-	{/if}
 </article>
 
 <style>
@@ -200,16 +200,6 @@
 		font-family: var(--font-mono);
 		text-align: right;
 		color: var(--color-text-tertiary);
-	}
-
-	.stubbed {
-		opacity: 0.45;
-	}
-
-	.note {
-		font-size: var(--text-xs);
-		color: var(--color-text-tertiary);
-		font-style: italic;
 	}
 
 	.sr-only {

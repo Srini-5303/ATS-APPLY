@@ -2,6 +2,9 @@ import type { BulletFact, ResumeAnalysis, ScoringInput } from '../types/scoring'
 import type { SectionType } from '../types/parser';
 import { isBulletLine, stripBullet } from '../parser/text';
 import { bulletGlyphOf } from '../parser/text';
+import { parseJobDescription, scoringTerms } from '../job-parser';
+import { uniqueTerms } from '../nlp/tokenizer';
+import { buildResumeTermSet } from './matching';
 import { startsWithActionVerb } from './constants/action-verbs';
 import { QUANT_PATTERNS } from './constants/quantification';
 
@@ -84,6 +87,13 @@ export function buildAnalysis(input: ScoringInput): ResumeAnalysis {
 
 	const sectionSet: ReadonlySet<SectionType> = new Set(input.resumeSections);
 
+	// Canonicalised once here so all six profiles match against identical vocabulary.
+	const resumeTerms = buildResumeTermSet(uniqueTerms(input.resumeText), input.resumeSkills);
+
+	const jdTerms = input.jobDescription
+		? scoringTerms(parseJobDescription(input.jobDescription))
+		: [];
+
 	return {
 		input,
 		bullets,
@@ -99,8 +109,7 @@ export function buildAnalysis(input: ScoringInput): ResumeAnalysis {
 		experienceHasDates:
 			input.experience.length > 0 &&
 			input.experience.some((e) => e.dates?.start != null || e.dates?.isCurrent === true),
-		// Populated in Phase 3 when the NLP pipeline lands.
-		jdTerms: [],
-		resumeTerms: []
+		jdTerms,
+		resumeTerms: [...resumeTerms]
 	};
 }

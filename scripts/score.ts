@@ -13,7 +13,6 @@ import { extractPdfGeometry } from '../src/lib/engine/parser/pdf';
 import { parsedResumeFromGeometry, parseResumeText } from '../src/lib/engine/parser';
 import { scoreResume } from '../src/lib/engine/scorer';
 import { toScoringInput } from '../src/lib/engine/scorer/to-scoring-input';
-import { STUBBED_DIMENSIONS } from '../src/lib/engine/scorer/dimensions/stubs';
 import { DIMENSIONS } from '../src/lib/engine/types/scoring';
 import { nodePdfjsRuntime } from '../tests/helpers/pdfjs-node';
 import type { ParseResult } from '../src/lib/engine/types/parser';
@@ -73,9 +72,7 @@ async function main(): Promise<void> {
 	console.log(`  ${'-'.repeat(16 + 9 + 6 + cols.length * 8)}`);
 
 	for (const r of results) {
-		const cells = DIMENSIONS.map((d) =>
-			pad(STUBBED_DIMENSIONS.has(d) ? '--' : String(r.breakdown[d].score), 8)
-		).join('');
+		const cells = DIMENSIONS.map((d) => pad(String(r.breakdown[d].score), 8)).join('');
 		console.log(
 			`  ${pad(r.system, 16)}${pad(String(r.overallScore), 9)}${pad(r.passesFilter ? 'yes' : 'no', 6)}${cells}`
 		);
@@ -83,9 +80,9 @@ async function main(): Promise<void> {
 
 	const scores = results.map((r) => r.overallScore);
 	const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+	const mode = results[0]?.breakdown.keywordMatch.isIndustryProxy ? 'general' : 'targeted';
 	console.log(
-		`\n  average ${avg.toFixed(1)}   spread ${String(Math.max(...scores) - Math.min(...scores))}` +
-			`   stubbed: ${[...STUBBED_DIMENSIONS].join(', ')}`
+		`\n  average ${avg.toFixed(1)}   spread ${String(Math.max(...scores) - Math.min(...scores))}   mode: ${mode}`
 	);
 
 	const suggestions = results.flatMap((r) => r.suggestions);

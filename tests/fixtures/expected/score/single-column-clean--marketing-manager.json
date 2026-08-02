@@ -1,0 +1,86 @@
+[
+  {
+    "platform": "workday",
+    "overall": 69,
+    "passes": false,
+    "dimensions": {
+      "formatting": 95,
+      "keywordMatch": 0,
+      "sections": 100,
+      "experience": 100,
+      "education": 100,
+      "quantification": 100
+    },
+    "suggestions": []
+  },
+  {
+    "platform": "taleo",
+    "overall": 64,
+    "passes": false,
+    "dimensions": {
+      "formatting": 95,
+      "keywordMatch": 0,
+      "sections": 100,
+      "experience": 100,
+      "education": 100,
+      "quantification": 100
+    },
+    "suggestions": []
+  },
+  {
+    "platform": "icims",
+    "overall": 74,
+    "passes": true,
+    "dimensions": {
+      "formatting": 96,
+      "keywordMatch": 0,
+      "sections": 100,
+      "experience": 100,
+      "education": 100,
+      "quantification": 100
+    },
+    "suggestions": []
+  },
+  {
+    "platform": "greenhouse",
+    "overall": 83,
+    "passes": true,
+    "dimensions": {
+      "formatting": 98,
+      "keywordMatch": 0,
+      "sections": 100,
+      "experience": 100,
+      "education": 100,
+      "quantification": 100
+    },
+    "suggestions": []
+  },
+  {
+    "platform": "lever",
+    "overall": 86,
+    "passes": true,
+    "dimensions": {
+      "formatting": 98,
+      "keywordMatch": 0,
+      "sections": 100,
+      "experience": 100,
+      "education": 100,
+      "quantification": 100
+    },
+    "suggestions": []
+  },
+  {
+    "platform": "successfactors",
+    "overall": 74,
+    "passes": true,
+    "dimensions": {
+      "formatting": 95,
+      "keywordMatch": 0,
+      "sections": 100,
+      "experience": 100,
+      "education": 100,
+      "quantification": 100
+    },
+    "suggestions": []
+  }
+]

@@ -1,0 +1,91 @@
+[
+  {
+    "platform": "workday",
+    "overall": 85,
+    "passes": true,
+    "dimensions": {
+      "formatting": 91,
+      "keywordMatch": 0,
+      "sections": 67,
+      "experience": 81,
+      "education": 100,
+      "quantification": 89
+    },
+    "suggestions": []
+  },
+  {
+    "platform": "taleo",
+    "overall": 67,
+    "passes": true,
+    "dimensions": {
+      "formatting": 92,
+      "keywordMatch": 0,
+      "sections": 67,
+      "experience": 81,
+      "education": 100,
+      "quantification": 89
+    },
+    "suggestions": [
+      "[critical] List more skills explicitly",
+      "[critical] Add the standard resume sections"
+    ]
+  },
+  {
+    "platform": "icims",
+    "overall": 92,
+    "passes": true,
+    "dimensions": {
+      "formatting": 94,
+      "keywordMatch": 0,
+      "sections": 100,
+      "experience": 81,
+      "education": 100,
+      "quantification": 89
+    },
+    "suggestions": []
+  },
+  {
+    "platform": "greenhouse",
+    "overall": 98,
+    "passes": true,
+    "dimensions": {
+      "formatting": 96,
+      "keywordMatch": 0,
+      "sections": 100,
+      "experience": 81,
+      "education": 100,
+      "quantification": 89
+    },
+    "suggestions": []
+  },
+  {
+    "platform": "lever",
+    "overall": 90,
+    "passes": true,
+    "dimensions": {
+      "formatting": 97,
+      "keywordMatch": 0,
+      "sections": 100,
+      "experience": 81,
+      "education": 100,
+      "quantification": 89
+    },
+    "suggestions": []
+  },
+  {
+    "platform": "successfactors",
+    "overall": 79,
+    "passes": true,
+    "dimensions": {
+      "formatting": 92,
+      "keywordMatch": 0,
+      "sections": 67,
+      "experience": 81,
+      "education": 100,
+      "quantification": 89
+    },
+    "suggestions": [
+      "[high] Add the standard resume sections"
+    ]
+  }
+]

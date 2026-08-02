@@ -1,0 +1,27 @@
+Senior Backend Engineer
+
+We are looking for a Senior Backend Engineer to join our payments platform team. You will
+design and operate the services that move billions of dollars a year.
+
+Requirements
+- 6+ years of experience building backend services in production
+- Strong proficiency in Go or Java
+- Deep experience with PostgreSQL and Redis
+- Hands-on experience with Kubernetes and Docker in production
+- Experience designing and operating distributed systems
+- Familiarity with Kafka or another event streaming platform
+- Solid understanding of REST and gRPC API design
+- Experience with CI/CD pipelines and infrastructure as code (Terraform)
+- Bachelor's degree in Computer Science or equivalent practical experience
+
+Nice to have
+- Experience with AWS at scale
+- Exposure to observability tooling such as Prometheus and Grafana
+- Background in fintech or payments
+- Experience mentoring engineers
+- Familiarity with GraphQL
+
+What you'll do
+- Own the reliability and latency of core payment services
+- Partner with product to ship customer-facing API endpoints
+- Improve our deployment and testing practices
