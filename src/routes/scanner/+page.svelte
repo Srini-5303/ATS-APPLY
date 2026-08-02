@@ -1,4 +1,5 @@
 <script lang="ts">
+	import JobDescriptionInput from '$components/upload/JobDescriptionInput.svelte';
 	import ResumeUploader from '$components/upload/ResumeUploader.svelte';
 	import ScoreDashboard from '$components/scoring/ScoreDashboard.svelte';
 	import { resumeStore } from '$stores/resume.svelte';
@@ -21,7 +22,12 @@
 
 	function runScore() {
 		const resume = resumeStore.resume;
-		if (resume) scoresStore.score(resume);
+		if (!resume) return;
+
+		// Deterministic scores render immediately; refinement adjusts them in place when it
+		// arrives, so there is never a spinner standing in for results (ADR 0001 §2).
+		scoresStore.score(resume);
+		void scoresStore.refine(resume);
 	}
 
 	function startOver() {
@@ -76,6 +82,10 @@
 		</details>
 	{/if}
 
+	<!-- Rendered once, outside the phase branches: a second instance further down would be a
+	     different component and would drop the user's pasted posting on every transition. -->
+	<JobDescriptionInput />
+
 	{#if resumeStore.warnings.length > 0 && phase !== 'upload'}
 		<ul class="warnings" data-testid="warnings">
 			{#each resumeStore.warnings as warning (warning.code)}
@@ -98,7 +108,11 @@
 
 	{#if phase === 'results'}
 		<ScoreDashboard />
+
 		<div class="actions">
+			<button type="button" class="primary" onclick={runScore} data-testid="rescan">
+				{scoresStore.jobDescription.trim() === '' ? 'Re-score' : 'Re-score against this job'}
+			</button>
 			<button type="button" onclick={startOver} data-testid="start-over">Scan another</button>
 		</div>
 	{/if}

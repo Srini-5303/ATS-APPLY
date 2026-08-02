@@ -327,15 +327,22 @@ These numbers are pinned by `tests/fixtures/expected/score/` and by the anchor a
 
 - **In-memory rate limiting and LRU cache do not work on Vercel Edge** (§9.3, §8.5). Instances
   are ephemeral and unshared, so the stated 10 RPM is really N×10 and cache hit rate is near
-  zero. Both are built behind interfaces with memory implementations; Vercel KV lands in
-  Phase 7. The limit is not claimed in user-facing docs until it is real.
+  zero. Both are now behind `RateLimiter` / `ResponseCache` interfaces with memory
+  implementations in `src/lib/server/`; Vercel KV lands in Phase 7. The limit is not claimed in
+  user-facing docs until it is real, and `/api/admin/rate-limit-stats` reports
+  `scope: 'isolate'` so the numbers are not mistaken for deployment-wide.
 - **Cache key omits provider tier and prompt version** (§8.5) — a weaker Groq answer would be
-  served for 24h after Gemini recovers. Key becomes
-  `SHA-256(promptVersion + ':' + providerTier + ':' + prompt)`.
+  served for 24h after Gemini recovers. **Resolved**: the key is
+  `SHA-256(promptVersion + ':' + providerTier + ':' + prompt)` and fallback-tier answers get a
+  1-hour TTL against the primary tier's 24.
 - **`LLMAnalysis` and `ParsedJobDescription` are referenced but never defined** (§11.2,
-  CLAUDE.md). Defined once in Phase 4/5 with a single shape and two producers.
-- **`mode: 'analyze-jd'` is validated in §14.3 but has no contract in §9.1.** Either specified
-  or removed in Phase 5.
+  CLAUDE.md). **Resolved**: `ParsedJobDescription` is defined in `engine/job-parser`.
+  `LLMAnalysis` was deleted rather than defined — under decision 2 the model returns bounded
+  adjustments to an existing result set, not a parallel analysis object, so the type had no
+  referent.
+- **`mode: 'analyze-jd'` is validated in §14.3 but has no contract in §9.1.** **Resolved**:
+  removed. Job descriptions are parsed client-side by the deterministic engine; there is no
+  second server mode to specify.
 - **`/docs/[...slug]` uses `realpath()`** (§14.4) which has no filesystem on Edge. Deferred
   with the docs site; when built, serve statically from `static/docs/` and delete the custom
   route, which removes the traversal vulnerability class entirely.

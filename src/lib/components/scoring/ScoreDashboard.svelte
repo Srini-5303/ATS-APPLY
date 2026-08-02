@@ -10,7 +10,7 @@
 			<p class="avg-label">average across 6 platforms</p>
 		</div>
 
-		<dl class="stats">
+		<dl class="stats" data-testid="summary-stats">
 			<div>
 				<dt>Likely to pass</dt>
 				<dd data-testid="passing-count">{scoresStore.passingCount} of 6</dd>
@@ -21,6 +21,21 @@
 			</div>
 		</dl>
 	</div>
+
+	<p class="provenance" data-testid="provenance">
+		{#if scoresStore.refining}
+			<span class="pulse" aria-hidden="true"></span>
+			Refining with AI…
+		{:else if scoresStore.retryAtMs}
+			Rule-based scoring. AI refinement is rate limited — try again shortly.
+		{:else if scoresStore.refinementUnavailable}
+			Rule-based scoring. AI refinement was unavailable.
+		{:else if scoresStore.provider && scoresStore.provider !== 'rule-based'}
+			Refined by AI on top of rule-based scoring.
+		{:else}
+			Rule-based scoring.
+		{/if}
+	</p>
 
 	{#if scoresStore.topSuggestions.length > 0}
 		<div class="wins">
@@ -93,6 +108,32 @@
 		margin: 0;
 		font-family: var(--font-mono);
 		font-size: var(--text-xl);
+	}
+
+	.provenance {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		font-size: var(--text-sm);
+		color: var(--color-text-tertiary);
+	}
+
+	.pulse {
+		width: 8px;
+		height: 8px;
+		border-radius: var(--radius-full);
+		background: var(--color-cyan);
+		animation: pulse 1.4s ease-in-out infinite;
+	}
+
+	@keyframes pulse {
+		0%,
+		100% {
+			opacity: 0.3;
+		}
+		50% {
+			opacity: 1;
+		}
 	}
 
 	.wins {
