@@ -15,25 +15,27 @@
   },
   {
     "platform": "taleo",
-    "overall": 91,
+    "overall": 90,
     "passes": true,
     "dimensions": {
       "formatting": 95,
       "keywordMatch": 76,
       "sections": 100,
       "experience": 100,
-      "education": 100,
+      "education": 90,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[high] Spell the degree out in full"
+    ]
   },
   {
     "platform": "icims",
-    "overall": 97,
+    "overall": 94,
     "passes": true,
     "dimensions": {
       "formatting": 96,
-      "keywordMatch": 76,
+      "keywordMatch": 81,
       "sections": 100,
       "experience": 100,
       "education": 100,
@@ -71,16 +73,18 @@
   },
   {
     "platform": "successfactors",
-    "overall": 93,
+    "overall": 92,
     "passes": true,
     "dimensions": {
       "formatting": 95,
       "keywordMatch": 76,
       "sections": 100,
       "experience": 100,
-      "education": 100,
+      "education": 94,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Spell the degree out in full"
+    ]
   }
 ]

@@ -26,9 +26,10 @@ export const lever: AtsProfile = {
 			(c) => c.analysis.avgBulletChars,
 			LEVER_BULLET_MIN,
 			LEVER_BULLET_MAX,
-			5
+			5,
+			'experience'
 		),
-		bonusWhen('lever.summary-present', (c) => c.analysis.sectionSet.has('summary'), 3)
+		bonusWhen('lever.summary-present', (c) => c.analysis.sectionSet.has('summary'), 3, 'sections')
 	],
 	meta: {
 		parserType: 'Proprietary (Sovren lineage)',

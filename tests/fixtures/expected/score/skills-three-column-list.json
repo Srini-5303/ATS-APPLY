@@ -20,12 +20,12 @@
   },
   {
     "platform": "taleo",
-    "overall": 49,
+    "overall": 55,
     "passes": false,
     "dimensions": {
       "formatting": 92,
       "keywordMatch": 0,
-      "sections": 67,
+      "sections": 59,
       "experience": 67,
       "education": 0,
       "quantification": 100
@@ -97,12 +97,12 @@
   },
   {
     "platform": "successfactors",
-    "overall": 64,
-    "passes": false,
+    "overall": 67,
+    "passes": true,
     "dimensions": {
       "formatting": 92,
       "keywordMatch": 0,
-      "sections": 67,
+      "sections": 62,
       "experience": 67,
       "education": 0,
       "quantification": 100

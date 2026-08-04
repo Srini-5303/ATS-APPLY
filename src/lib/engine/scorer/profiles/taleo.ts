@@ -1,4 +1,5 @@
 import type { AtsProfile } from '../../types/scoring';
+import { isAbbreviatedDegree } from '../dimensions/education';
 import { penaltyWhen, perUnit } from '../quirks/factories';
 
 export const taleo: AtsProfile = {
@@ -18,14 +19,20 @@ export const taleo: AtsProfile = {
 	passingScore: 65,
 	requiredSections: ['experience', 'education', 'skills'],
 	quirks: [
-		penaltyWhen('taleo.low-skill-density', (c) => c.input.resumeSkills.length < 5, 10, {
-			summary: 'List more skills explicitly',
-			details: [
-				'Taleo relies on Boolean keyword search over a literal skills list. Fewer than five detected skills leaves recruiters little to match against.',
-				'Add a dedicated Skills section naming tools, languages and platforms in full.'
-			],
-			impact: 'critical'
-		}),
+		penaltyWhen(
+			'taleo.low-skill-density',
+			(c) => c.input.resumeSkills.length < 5,
+			10,
+			{
+				summary: 'List more skills explicitly',
+				details: [
+					'Taleo relies on Boolean keyword search over a literal skills list. Fewer than five detected skills leaves recruiters little to match against.',
+					'Add a dedicated Skills section naming tools, languages and platforms in full.'
+				],
+				impact: 'critical'
+			},
+			'keywordMatch'
+		),
 		perUnit(
 			'taleo.missing-sections',
 			(c) => c.profile.requiredSections.filter((s) => !c.analysis.sectionSet.has(s)).length,
@@ -37,7 +44,25 @@ export const taleo: AtsProfile = {
 					'Include Experience, Education and Skills with conventional headings.'
 				],
 				impact: 'critical'
-			}
+			},
+			'sections'
+		),
+		// Taleo indexes the literal string. "M.S." never matches a requisition asking for
+		// "Master of Science" — the mismatch that makes education the one dimension where an
+		// OCR-era parser genuinely scores a good entry lower than everyone else.
+		penaltyWhen(
+			'taleo.abbreviated-degree',
+			(c) => c.input.education.some((e) => isAbbreviatedDegree(e.degree)),
+			10,
+			{
+				summary: 'Spell the degree out in full',
+				details: [
+					'Taleo matches credential strings literally, so "M.S." and "Master of Science" are unrelated tokens to it.',
+					'Write "Master of Science (M.S.)" so both forms are indexed.'
+				],
+				impact: 'high'
+			},
+			'education'
 		)
 	],
 	meta: {

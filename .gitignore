@@ -13,7 +13,7 @@ test-results/
 blob-report/
 .playwright/
 
-outputs/
+# outputs/
 
 # Secrets — never commit. See .env.example for the full variable list.
 .env

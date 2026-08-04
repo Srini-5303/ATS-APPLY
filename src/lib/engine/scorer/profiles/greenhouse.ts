@@ -24,9 +24,15 @@ export const greenhouse: AtsProfile = {
 			(c) =>
 				c.analysis.bullets.length > 0 &&
 				c.analysis.quantifiedBulletCount / c.analysis.bullets.length >= QUANT_BONUS_RATIO,
-			8
+			8,
+			'quantification'
 		),
-		bonusWhen('greenhouse.projects-present', (c) => c.analysis.sectionSet.has('projects'), 3)
+		bonusWhen(
+			'greenhouse.projects-present',
+			(c) => c.analysis.sectionSet.has('projects'),
+			3,
+			'sections'
+		)
 	],
 	meta: {
 		parserType: 'Fine-tuned LLM',

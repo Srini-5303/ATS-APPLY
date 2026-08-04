@@ -19,12 +19,12 @@
   },
   {
     "platform": "taleo",
-    "overall": 38,
+    "overall": 49,
     "passes": false,
     "dimensions": {
       "formatting": 92,
       "keywordMatch": 0,
-      "sections": 33,
+      "sections": 17,
       "experience": 83,
       "education": 0,
       "quantification": 100
@@ -75,13 +75,13 @@
   },
   {
     "platform": "lever",
-    "overall": 88,
+    "overall": 85,
     "passes": true,
     "dimensions": {
       "formatting": 97,
       "keywordMatch": 0,
       "sections": 100,
-      "experience": 83,
+      "experience": 88,
       "education": 0,
       "quantification": 100
     },
@@ -92,12 +92,12 @@
   },
   {
     "platform": "successfactors",
-    "overall": 53,
+    "overall": 60,
     "passes": false,
     "dimensions": {
       "formatting": 92,
       "keywordMatch": 0,
-      "sections": 33,
+      "sections": 23,
       "experience": 83,
       "education": 0,
       "quantification": 100

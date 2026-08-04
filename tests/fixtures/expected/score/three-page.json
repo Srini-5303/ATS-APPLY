@@ -18,27 +18,28 @@
   },
   {
     "platform": "taleo",
-    "overall": 74,
+    "overall": 73,
     "passes": true,
     "dimensions": {
       "formatting": 88,
       "keywordMatch": 33,
       "sections": 100,
       "experience": 100,
-      "education": 100,
+      "education": 90,
       "quantification": 100
     },
     "suggestions": [
+      "[high] Spell the degree out in full",
       "[medium] Broaden the vocabulary recruiters search for in your field"
     ]
   },
   {
     "platform": "icims",
-    "overall": 84,
+    "overall": 80,
     "passes": true,
     "dimensions": {
       "formatting": 92,
-      "keywordMatch": 33,
+      "keywordMatch": 38,
       "sections": 100,
       "experience": 100,
       "education": 100,
@@ -89,10 +90,11 @@
       "keywordMatch": 33,
       "sections": 100,
       "experience": 100,
-      "education": 100,
+      "education": 94,
       "quantification": 100
     },
     "suggestions": [
+      "[medium] Spell the degree out in full",
       "[medium] Broaden the vocabulary recruiters search for in your field"
     ]
   }

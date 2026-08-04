@@ -18,19 +18,20 @@
   },
   {
     "platform": "taleo",
-    "overall": 67,
+    "overall": 71,
     "passes": true,
     "dimensions": {
       "formatting": 92,
       "keywordMatch": 0,
-      "sections": 67,
+      "sections": 59,
       "experience": 81,
-      "education": 100,
+      "education": 90,
       "quantification": 89
     },
     "suggestions": [
       "[critical] List more skills explicitly",
       "[critical] Add the standard resume sections",
+      "[high] Spell the degree out in full",
       "[medium] Broaden the vocabulary recruiters search for in your field",
       "[critical] Add the skills section"
     ]
@@ -53,7 +54,7 @@
   },
   {
     "platform": "greenhouse",
-    "overall": 98,
+    "overall": 92,
     "passes": true,
     "dimensions": {
       "formatting": 96,
@@ -61,7 +62,7 @@
       "sections": 100,
       "experience": 81,
       "education": 100,
-      "quantification": 89
+      "quantification": 97
     },
     "suggestions": [
       "[medium] Broaden the vocabulary recruiters search for in your field"
@@ -85,18 +86,19 @@
   },
   {
     "platform": "successfactors",
-    "overall": 79,
+    "overall": 82,
     "passes": true,
     "dimensions": {
       "formatting": 92,
       "keywordMatch": 0,
-      "sections": 67,
+      "sections": 62,
       "experience": 81,
-      "education": 100,
+      "education": 94,
       "quantification": 89
     },
     "suggestions": [
       "[high] Add the standard resume sections",
+      "[medium] Spell the degree out in full",
       "[medium] Broaden the vocabulary recruiters search for in your field",
       "[critical] Add the skills section"
     ]

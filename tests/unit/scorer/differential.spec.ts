@@ -105,6 +105,89 @@ describe('cross-platform differentials', () => {
 	});
 });
 
+/**
+ * Quirks used to sum into one scalar added after the weighted sum, so a platform-specific
+ * penalty on experience left the experience bar untouched and moved only the total. Six
+ * identical bars sat above six differing overalls, and the user could not see where the
+ * difference came from.
+ */
+describe('quirk routing', () => {
+	const ABBREVIATED = makeInput({
+		...DECENT_RESUME,
+		resumeSections: ['contact', 'experience', 'education', 'skills'],
+		education: [
+			{
+				degree: 'M.S.',
+				field: 'Computer Science',
+				institution: 'State University',
+				dates: { start: '2022-09', end: '2024-05', isCurrent: false },
+				gpa: '3.8',
+				honors: ['Dean’s List']
+			}
+		]
+	});
+
+	it('moves the bar a quirk names, not just the total', () => {
+		const results = scoreResume(ABBREVIATED);
+		const education = new Map(results.map((r) => [r.platformId, r.breakdown.education.score]));
+
+		// Taleo indexes credential strings literally, SuccessFactors resolves them partially,
+		// and the LLM-based parsers do not care at all.
+		expect(education.get('taleo')!).toBeLessThan(education.get('successfactors')!);
+		expect(education.get('successfactors')!).toBeLessThan(education.get('greenhouse')!);
+		expect(education.get('greenhouse')).toBe(education.get('lever'));
+	});
+
+	it('differentiates several bars on a resume with weaknesses to differentiate on', () => {
+		// The complaint that started this: four of six bars identical on every platform, so
+		// the card could not show where the overall difference came from.
+		//
+		// Three is what this input can honestly support — formatting, sections and experience.
+		// Keywords and education are legitimately flat here because there is no job
+		// description and no education section at all, and a platform cannot disagree about
+		// content that is absent.
+		const weak = makeInput({
+			resumeText: 'EXPERIENCE\n- Did some work\n- Helped the team',
+			resumeSections: ['experience'],
+			hasMultipleColumns: true,
+			pageCount: 3
+		});
+
+		const results = scoreResume(weak);
+		const varying = DIMENSIONS.filter(
+			(d) => new Set(results.map((r) => r.breakdown[d].score)).size > 1
+		);
+
+		expect(varying).toEqual(expect.arrayContaining(['formatting', 'sections', 'experience']));
+	});
+
+	it('still counts a penalty the bar is too low to absorb', () => {
+		// A resume with no sections sits at 0 on that bar, so Taleo's -8 per missing section
+		// would land on the floor and vanish — leaving the platform that punishes this hardest
+		// scoring above the one that barely cares.
+		const noSections = makeInput({
+			resumeText: 'Go Kubernetes PostgreSQL AWS Docker Terraform',
+			jobDescription: 'Requirements: Go, Kubernetes, PostgreSQL'
+		});
+
+		const scores = byPlatform(noSections);
+		expect(scores.get('taleo')!).toBeLessThan(scores.get('lever')!);
+	});
+
+	it('keeps a quirk alive when its dimension is dropped for want of signal', () => {
+		// No JD and no identifiable industry drops the keyword slot to zero weight. Taleo's
+		// skill-density rule is routed there and must fall back to the overall rather than
+		// silently disappear.
+		const noSkills = makeInput({
+			resumeText: 'EXPERIENCE\n- Did some work',
+			resumeSections: ['experience']
+		});
+
+		const scores = byPlatform(noSkills);
+		expect(scores.get('taleo')!).toBeLessThan(scores.get('icims')!);
+	});
+});
+
 describe('scoring properties', () => {
 	const arbitraryInput = fc.record({
 		resumeText: fc.string({ maxLength: 400 }),

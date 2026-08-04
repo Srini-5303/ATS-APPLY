@@ -19,17 +19,18 @@
   },
   {
     "platform": "taleo",
-    "overall": 59,
+    "overall": 58,
     "passes": false,
     "dimensions": {
       "formatting": 71,
       "keywordMatch": 24,
       "sections": 100,
       "experience": 57,
-      "education": 80,
+      "education": 70,
       "quantification": 100
     },
     "suggestions": [
+      "[high] Spell the degree out in full",
       "[critical] Add the requirements this posting names that your resume does not",
       "[medium] Open more bullets with a strong action verb",
       "[medium] Simplify the layout so it survives parsing"
@@ -96,10 +97,11 @@
       "keywordMatch": 24,
       "sections": 100,
       "experience": 57,
-      "education": 80,
+      "education": 74,
       "quantification": 100
     },
     "suggestions": [
+      "[medium] Spell the degree out in full",
       "[critical] Add the requirements this posting names that your resume does not",
       "[medium] Open more bullets with a strong action verb",
       "[medium] Simplify the layout so it survives parsing"

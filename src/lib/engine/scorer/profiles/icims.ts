@@ -17,7 +17,14 @@ export const icims: AtsProfile = {
 	keywordStrategy: 'fuzzy',
 	passingScore: 60,
 	requiredSections: ['experience', 'education'],
-	quirks: [bonusWhen('icims.rich-skill-taxonomy', (c) => c.input.resumeSkills.length >= 10, 5)],
+	quirks: [
+		bonusWhen(
+			'icims.rich-skill-taxonomy',
+			(c) => c.input.resumeSkills.length >= 10,
+			5,
+			'keywordMatch'
+		)
+	],
 	meta: {
 		parserType: 'HireAbility ALEX (grammar-based NLP)',
 		philosophy: 'Semantic matching with role-fit scoring',

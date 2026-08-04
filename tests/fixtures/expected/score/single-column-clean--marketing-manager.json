@@ -17,27 +17,28 @@
   },
   {
     "platform": "taleo",
-    "overall": 64,
+    "overall": 63,
     "passes": false,
     "dimensions": {
       "formatting": 95,
       "keywordMatch": 0,
       "sections": 100,
       "experience": 100,
-      "education": 100,
+      "education": 90,
       "quantification": 100
     },
     "suggestions": [
+      "[high] Spell the degree out in full",
       "[critical] Add the requirements this posting names that your resume does not"
     ]
   },
   {
     "platform": "icims",
-    "overall": 74,
+    "overall": 71,
     "passes": true,
     "dimensions": {
       "formatting": 96,
-      "keywordMatch": 0,
+      "keywordMatch": 5,
       "sections": 100,
       "experience": 100,
       "education": 100,
@@ -81,17 +82,18 @@
   },
   {
     "platform": "successfactors",
-    "overall": 74,
+    "overall": 73,
     "passes": true,
     "dimensions": {
       "formatting": 95,
       "keywordMatch": 0,
       "sections": 100,
       "experience": 100,
-      "education": 100,
+      "education": 94,
       "quantification": 100
     },
     "suggestions": [
+      "[medium] Spell the degree out in full",
       "[critical] Add the requirements this posting names that your resume does not"
     ]
   }

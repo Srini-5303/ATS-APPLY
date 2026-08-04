@@ -142,7 +142,19 @@ export interface QuirkContext {
 export interface QuirkRule {
 	/** Globally unique, prefixed with the platform id, e.g. 'workday.page-truncation'. */
 	id: string;
-	/** Signed point delta applied after the weighted sum. */
+	/**
+	 * The dimension this quirk actually measures.
+	 *
+	 * When set, the delta lands on that dimension's sub-score and reaches the overall through
+	 * the weighted sum, so the bar the user sees moves with it. Omit only for whole-document
+	 * effects that belong to no single dimension.
+	 *
+	 * Every quirk used to add into one scalar applied after the weighted sum, which meant a
+	 * platform-specific experience penalty left the experience bar untouched and silently
+	 * moved the total instead — six identical bars above six differing overalls.
+	 */
+	dimension?: Dimension;
+	/** Signed point delta. */
 	evaluate: (ctx: QuirkContext) => number;
 	explain: (ctx: QuirkContext) => Suggestion | null;
 }

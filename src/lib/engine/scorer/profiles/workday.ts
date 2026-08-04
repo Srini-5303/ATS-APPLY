@@ -20,14 +20,22 @@ export const workday: AtsProfile = {
 	// is present for every non-empty resume and therefore carries no signal (ADR 0001 §7).
 	requiredSections: ['experience', 'education', 'skills'],
 	quirks: [
-		penaltyWhen('workday.non-standard-headers', (c) => c.analysis.unknownSectionCount > 2, 5, {
-			summary: 'Rename non-standard section headers',
-			details: [
-				'Workday maps headers to a fixed taxonomy. Headers it does not recognise get filed as unclassified and their content may be dropped from the candidate profile.',
-				'Use conventional names: "Experience", "Education", "Skills", "Projects".'
-			],
-			impact: 'high'
-		}),
+		penaltyWhen(
+			'workday.non-standard-headers',
+			(c) => c.analysis.unknownSectionCount > 2,
+			5,
+			{
+				summary: 'Rename non-standard section headers',
+				details: [
+					'Workday maps headers to a fixed taxonomy. Headers it does not recognise get filed as unclassified and their content may be dropped from the candidate profile.',
+					'Use conventional names: "Experience", "Education", "Skills", "Projects".'
+				],
+				impact: 'high'
+			},
+			'sections'
+		),
+		// Truncation costs whole pages of content, not one dimension's worth — it stays on the
+		// overall.
 		penaltyWhen('workday.page-truncation', (c) => c.input.pageCount > 2, 8, {
 			summary: 'Cut the resume to two pages',
 			details: [

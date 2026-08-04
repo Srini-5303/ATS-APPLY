@@ -23,6 +23,22 @@ export const GPA_WEAK = 3.0;
 /** At or above this a GPA is worth calling out. */
 export const GPA_STRONG = 3.5;
 
+/** A degree written out in words rather than as an initialism. */
+const SPELLED_OUT_DEGREE = /\b(?:bachelor|master|doctor|doctorate|associate|diploma)\b/i;
+
+/**
+ * True when the degree is given only as an initialism — "M.S." rather than "Master of Science".
+ *
+ * Literal and OCR-based parsers index the string they read. "M.S." with periods is a different
+ * token from "MS", which is a different token from "Master of Science", and a requisition
+ * asking for the last of those matches none of the others. Platforms declare how much they
+ * care via a quirk rather than this scorer branching on the platform.
+ */
+export function isAbbreviatedDegree(degree: string | null | undefined): boolean {
+	if (!degree) return false;
+	return !SPELLED_OUT_DEGREE.test(degree);
+}
+
 export function scoreEducation(analysis: ResumeAnalysis): EducationBreakdown {
 	const entries = analysis.input.education;
 	const notes: string[] = [];
@@ -67,6 +83,17 @@ export function scoreEducation(analysis: ResumeAnalysis): EducationBreakdown {
 		if (gpa !== null && Number.isFinite(gpa)) {
 			if (gpa >= GPA_STRONG) notes.push(`GPA of ${bestEntry.gpa ?? ''} is worth keeping.`);
 			else if (gpa < GPA_WEAK) notes.push('A GPA below 3.0 is usually better omitted.');
+		} else {
+			notes.push('No GPA was found. Worth stating if it is 3.5 or above — 10 points here.');
+		}
+
+		// The two components a complete entry usually lacks had no note at all, so a 90 arrived
+		// with nothing explaining the missing 10.
+		if (bestEntry.honors.length === 0) {
+			notes.push(
+				'No honors were found. If you have one — Dean’s List, cum laude, a named scholarship ' +
+					'or fellowship — list it; it is the last 10 points of this dimension.'
+			);
 		}
 
 		if (degreeLevel(bestEntry.degree) >= 4) {

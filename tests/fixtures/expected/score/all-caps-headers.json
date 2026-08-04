@@ -19,18 +19,19 @@
   },
   {
     "platform": "taleo",
-    "overall": 51,
+    "overall": 50,
     "passes": false,
     "dimensions": {
       "formatting": 84,
       "keywordMatch": 0,
       "sections": 100,
       "experience": 0,
-      "education": 80,
+      "education": 70,
       "quantification": 0
     },
     "suggestions": [
       "[critical] List more skills explicitly",
+      "[high] Spell the degree out in full",
       "[medium] Broaden the vocabulary recruiters search for in your field",
       "[critical] Describe what you did in each role",
       "[medium] Simplify the layout so it survives parsing"
@@ -96,10 +97,11 @@
       "keywordMatch": 0,
       "sections": 100,
       "experience": 0,
-      "education": 80,
+      "education": 74,
       "quantification": 0
     },
     "suggestions": [
+      "[medium] Spell the degree out in full",
       "[medium] Broaden the vocabulary recruiters search for in your field",
       "[critical] Describe what you did in each role",
       "[medium] Simplify the layout so it survives parsing"
