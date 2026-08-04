@@ -1,7 +1,17 @@
 <script lang="ts">
 	import { DIMENSIONS, type Dimension, type ScoreResult } from '$engine/types/scoring';
+	import { scoresStore } from '$stores/scores.svelte';
 
 	let { result }: { result: ScoreResult } = $props();
+
+	/**
+	 * What the AI pass changed on this platform, if anything.
+	 *
+	 * Shown on the card rather than only in the summary because this is where the number the
+	 * user is reading actually lives — a total elsewhere saying "adjusted 5 of 6" does not tell
+	 * them which five.
+	 */
+	const adjustment = $derived(scoresStore.adjustmentFor(result.platformId));
 
 	const LABELS: Record<Dimension, string> = {
 		formatting: 'Formatting',
@@ -44,19 +54,39 @@
 			<p class="vendor">{result.vendor}</p>
 		</div>
 
-		<svg viewBox="0 0 80 80" class="ring" aria-hidden="true">
-			<circle cx="40" cy="40" r={RADIUS} class="track" />
-			<circle
-				cx="40"
-				cy="40"
-				r={RADIUS}
-				class="value {tone}"
-				stroke-dasharray={CIRCUMFERENCE}
-				stroke-dashoffset={dashOffset}
-			/>
-			<text x="40" y="40" class="score-text">{result.overallScore}</text>
-		</svg>
+		<div class="ring-wrap">
+			<svg viewBox="0 0 80 80" class="ring" aria-hidden="true">
+				<circle cx="40" cy="40" r={RADIUS} class="track" />
+				<circle
+					cx="40"
+					cy="40"
+					r={RADIUS}
+					class="value {tone}"
+					stroke-dasharray={CIRCUMFERENCE}
+					stroke-dashoffset={dashOffset}
+				/>
+				<text x="40" y="40" class="score-text">{result.overallScore}</text>
+			</svg>
+
+			{#if adjustment !== null}
+				<span
+					class="adjustment"
+					data-testid="ai-adjustment"
+					title="The AI review moved this score by {adjustment} from the rule-based {scoresStore
+						.ruleBasedScores[result.platformId]}"
+				>
+					{adjustment > 0 ? '+' : ''}{adjustment}
+				</span>
+			{/if}
+		</div>
 	</header>
+
+	{#if adjustment !== null}
+		<p class="sr-only">
+			The AI review adjusted this score by {adjustment} points from the rule-based
+			{scoresStore.ruleBasedScores[result.platformId]}.
+		</p>
+	{/if}
 
 	<p class="sr-only">
 		{result.system} scores {result.overallScore} out of 100 and is
@@ -109,11 +139,37 @@
 		color: var(--color-text-tertiary);
 	}
 
+	.ring-wrap {
+		position: relative;
+		flex-shrink: 0;
+		line-height: 0;
+	}
+
 	.ring {
 		width: 68px;
 		height: 68px;
 		flex-shrink: 0;
 		transform: rotate(-90deg);
+	}
+
+	/* Pinned to the ring rather than placed in a row of its own: it annotates this number, and
+	   reads as a correction to it.
+	   Cyan carries "the AI touched this" on every chip, because amber would collide with the
+	   amber ring on exactly the cards most likely to have been adjusted downwards. Direction is
+	   in the sign, which is unambiguous without colour. */
+	.adjustment {
+		position: absolute;
+		right: -4px;
+		bottom: -2px;
+		padding: 1px var(--space-2);
+		border-radius: var(--radius-full);
+		border: 1px solid color-mix(in srgb, var(--color-cyan) 40%, transparent);
+		background: var(--color-bg-primary);
+		color: var(--color-cyan);
+		font-family: var(--font-mono);
+		font-size: var(--text-xs);
+		line-height: 1.4;
+		font-variant-numeric: tabular-nums;
 	}
 
 	.track {

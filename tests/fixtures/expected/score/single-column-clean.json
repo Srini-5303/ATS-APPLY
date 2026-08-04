@@ -5,7 +5,7 @@
     "passes": true,
     "dimensions": {
       "formatting": 95,
-      "keywordMatch": 33,
+      "keywordMatch": 34,
       "sections": 100,
       "experience": 100,
       "education": 100,
@@ -21,7 +21,7 @@
     "passes": true,
     "dimensions": {
       "formatting": 95,
-      "keywordMatch": 33,
+      "keywordMatch": 34,
       "sections": 100,
       "experience": 100,
       "education": 90,
@@ -38,7 +38,7 @@
     "passes": true,
     "dimensions": {
       "formatting": 96,
-      "keywordMatch": 38,
+      "keywordMatch": 39,
       "sections": 100,
       "experience": 100,
       "education": 100,
@@ -54,7 +54,7 @@
     "passes": true,
     "dimensions": {
       "formatting": 98,
-      "keywordMatch": 35,
+      "keywordMatch": 38,
       "sections": 100,
       "experience": 100,
       "education": 100,
@@ -70,7 +70,7 @@
     "passes": true,
     "dimensions": {
       "formatting": 98,
-      "keywordMatch": 35,
+      "keywordMatch": 38,
       "sections": 100,
       "experience": 100,
       "education": 100,
@@ -82,11 +82,11 @@
   },
   {
     "platform": "successfactors",
-    "overall": 81,
+    "overall": 82,
     "passes": true,
     "dimensions": {
       "formatting": 95,
-      "keywordMatch": 33,
+      "keywordMatch": 34,
       "sections": 100,
       "experience": 100,
       "education": 94,

@@ -22,6 +22,15 @@ import { MATCHERS } from '../matching';
 /** A synonym match is real but weaker evidence than the literal term. */
 export const SYNONYM_CREDIT = 0.8;
 
+/**
+ * How much a required term outweighs a preferred one.
+ *
+ * 2 rather than something larger: a posting's "Nice to have" list is still signal a recruiter
+ * screens on, and driving the weight up far enough to make optional terms nearly free would
+ * let a resume ignore half the posting and still score in the nineties.
+ */
+export const REQUIRED_TERM_WEIGHT = 2;
+
 export function scoreKeywords(analysis: ResumeAnalysis, profile: AtsProfile): KeywordBreakdown {
 	if (analysis.jdTerms.length > 0) return scoreTargeted(analysis, profile);
 	return scoreGeneral(analysis, profile);
@@ -42,10 +51,21 @@ function scoreTargeted(analysis: ResumeAnalysis, profile: AtsProfile): KeywordBr
 		analysis.input.resumeText.toLowerCase()
 	);
 
-	const score = Math.min(
-		100,
-		(creditedCount(matched, synonymMatched) / analysis.jdTerms.length) * 100
+	// A term the posting lists under "Requirements" counts for more than one under "Nice to
+	// have". Both the numerator and the denominator are weighted, so a resume matching every
+	// required term and no optional one still scores well rather than being capped by the
+	// count of things it was never asked for.
+	const weightOf = (term: string): number =>
+		analysis.jdRequiredTerms.has(term) ? REQUIRED_TERM_WEIGHT : 1;
+
+	const loose = new Set(synonymMatched);
+	const earned = matched.reduce(
+		(sum, term) => sum + weightOf(term) * (loose.has(term) ? SYNONYM_CREDIT : 1),
+		0
 	);
+	const possible = analysis.jdTerms.reduce((sum, term) => sum + weightOf(term), 0);
+
+	const score = possible === 0 ? 0 : Math.min(100, (earned / possible) * 100);
 
 	return {
 		score: Math.max(0, Math.round(score)),

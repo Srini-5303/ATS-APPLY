@@ -134,6 +134,12 @@ export const TECHNOLOGY: readonly (readonly string[])[] = [
 	['code review', 'code reviews'],
 	['distributed systems'],
 	['system design'],
+	// Surfaced by auditing what a phrase-extraction pass would have caught that the taxonomy
+	// missed. These are the genuine recall gaps; the rest of that pass was noise.
+	['api design'],
+	['backend services', 'backend service'],
+	['event streaming', 'event streaming platform', 'stream processing'],
+	['computer science', 'cs degree'],
 	['observability', 'monitoring'],
 	['security', 'infosec', 'information security'],
 	['oauth', 'oauth2'],

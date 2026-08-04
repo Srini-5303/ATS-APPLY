@@ -230,3 +230,73 @@ describe('keyword scoring — targeted mode', () => {
 		expect(icims).toBeGreaterThanOrEqual(workday);
 	});
 });
+
+describe('required versus preferred terms', () => {
+	// The job parser always drew this distinction; `scoringTerms()` used to flatten it away,
+	// so missing a hard requirement cost exactly as much as missing a bonus.
+	const RESUME = 'EXPERIENCE\nBuilt services with Kubernetes and Docker on AWS';
+
+	function keywordScore(jobDescription: string): number {
+		const analysis = buildAnalysis(makeInput({ resumeText: RESUME, jobDescription }));
+		return scoreKeywords(analysis, PROFILES.workday).score;
+	}
+
+	it('costs more to miss a required term than a preferred one', () => {
+		const missingRequired = keywordScore(
+			'Requirements:\nTerraform\n\nNice to have:\nKubernetes\nDocker'
+		);
+		const missingPreferred = keywordScore(
+			'Requirements:\nKubernetes\nDocker\n\nNice to have:\nTerraform'
+		);
+
+		expect(missingPreferred).toBeGreaterThan(missingRequired);
+	});
+
+	it('separates the two lists on the analysis', () => {
+		const analysis = buildAnalysis(
+			makeInput({
+				resumeText: RESUME,
+				jobDescription: 'Requirements:\nKubernetes\n\nNice to have:\nTerraform'
+			})
+		);
+
+		expect(analysis.jdRequiredTerms.has('kubernetes')).toBe(true);
+		expect(analysis.jdRequiredTerms.has('terraform')).toBe(false);
+		expect(analysis.jdTerms).toContain('terraform');
+	});
+
+	it('still reaches 100 when everything asked for is present', () => {
+		// Weighting both sides of the ratio, not just the denominator.
+		expect(keywordScore('Requirements:\nKubernetes\nDocker\n\nNice to have:\nAWS')).toBe(100);
+	});
+});
+
+describe('stemming', () => {
+	it('lets a semantic platform match an inflected phrase that an exact one misses', () => {
+		// Phrases are where stemming earns its keep. Single-word plurals are largely already
+		// enumerated in the synonym groups; nobody lists every inflection of every phrase.
+		const input = makeInput({
+			resumeText: 'EXPERIENCE\nDesigned a distributed system and owned unit tests',
+			jobDescription: 'Requirements: distributed systems, unit testing'
+		});
+		const analysis = buildAnalysis(input);
+
+		const lever = scoreKeywords(analysis, PROFILES.lever);
+		const workday = scoreKeywords(analysis, PROFILES.workday);
+
+		expect(lever.matched).toContain('distributed systems');
+		expect(workday.matched).not.toContain('distributed systems');
+		expect(lever.score).toBeGreaterThan(workday.score);
+	});
+
+	it('does not let stemming reach across distinct technologies', () => {
+		const input = makeInput({
+			resumeText: 'EXPERIENCE\nBuilt frontends in JavaScript',
+			jobDescription: 'Requirements: Java'
+		});
+		const analysis = buildAnalysis(input);
+
+		// The most lenient platform there is still must not report Java as covered.
+		expect(scoreKeywords(analysis, PROFILES.lever).matched).not.toContain('java');
+	});
+});

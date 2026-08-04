@@ -5,7 +5,7 @@
     "passes": false,
     "dimensions": {
       "formatting": 87,
-      "keywordMatch": 33,
+      "keywordMatch": 34,
       "sections": 100,
       "experience": 100,
       "education": 100,
@@ -18,11 +18,11 @@
   },
   {
     "platform": "taleo",
-    "overall": 73,
+    "overall": 74,
     "passes": true,
     "dimensions": {
       "formatting": 88,
-      "keywordMatch": 33,
+      "keywordMatch": 34,
       "sections": 100,
       "experience": 100,
       "education": 90,
@@ -35,11 +35,11 @@
   },
   {
     "platform": "icims",
-    "overall": 80,
+    "overall": 81,
     "passes": true,
     "dimensions": {
       "formatting": 92,
-      "keywordMatch": 38,
+      "keywordMatch": 39,
       "sections": 100,
       "experience": 100,
       "education": 100,
@@ -51,11 +51,11 @@
   },
   {
     "platform": "greenhouse",
-    "overall": 91,
+    "overall": 92,
     "passes": true,
     "dimensions": {
       "formatting": 94,
-      "keywordMatch": 35,
+      "keywordMatch": 38,
       "sections": 100,
       "experience": 100,
       "education": 100,
@@ -67,11 +67,11 @@
   },
   {
     "platform": "lever",
-    "overall": 93,
+    "overall": 94,
     "passes": true,
     "dimensions": {
       "formatting": 95,
-      "keywordMatch": 35,
+      "keywordMatch": 38,
       "sections": 100,
       "experience": 100,
       "education": 100,
@@ -87,7 +87,7 @@
     "passes": true,
     "dimensions": {
       "formatting": 88,
-      "keywordMatch": 33,
+      "keywordMatch": 34,
       "sections": 100,
       "experience": 100,
       "education": 94,

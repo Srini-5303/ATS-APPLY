@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import ExtractionPanel from '$components/upload/ExtractionPanel.svelte';
 	import JobDescriptionInput from '$components/upload/JobDescriptionInput.svelte';
 	import ResumeUploader from '$components/upload/ResumeUploader.svelte';
 	import ScoreDashboard from '$components/scoring/ScoreDashboard.svelte';
@@ -71,7 +72,24 @@
 		{/each}
 	</ol>
 
-	{#if phase !== 'results'}
+	{#if phase === 'results'}
+		<!-- The controls were only at the foot of the page, which meant scrolling past six cards
+		     to change a job description and try again — the loop people actually repeat. -->
+		<div class="filebar" data-testid="filebar">
+			<span class="filename">{resumeStore.file?.name ?? 'Pasted text'}</span>
+			<span class="filemeta">
+				{resumeStore.resume?.metadata.wordCount ?? 0} words · {resumeStore.resume?.metadata
+					.pageCount ?? 0}
+				{(resumeStore.resume?.metadata.pageCount ?? 0) === 1 ? 'page' : 'pages'}
+			</span>
+			<div class="filebar-actions">
+				<button type="button" class="primary" onclick={runScore} data-testid="rescan-top">
+					{scoresStore.jobDescription.trim() === '' ? 'Re-score' : 'Re-score against this job'}
+				</button>
+				<button type="button" onclick={startOver}>Scan another</button>
+			</div>
+		</div>
+	{:else}
 		<ResumeUploader onparsed={runScore} />
 
 		<details class="paste">
@@ -86,6 +104,12 @@
 				Use this text
 			</button>
 		</details>
+	{/if}
+
+	<!-- Open before scoring so the parse can be checked, collapsed afterwards so it does not
+	     push the results down the page. -->
+	{#if resumeStore.resume}
+		<ExtractionPanel resume={resumeStore.resume} open={phase === 'parsed'} />
 	{/if}
 
 	<!-- Rendered once, outside the phase branches: a second instance further down would be a
@@ -221,6 +245,39 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--space-3);
+	}
+
+	.filebar {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-3);
+		padding: var(--space-3) var(--space-4);
+		background: var(--glass-bg);
+		border: 1px solid var(--glass-border);
+		border-radius: var(--radius-full);
+	}
+
+	.filename {
+		font-weight: 600;
+	}
+
+	.filemeta {
+		font-family: var(--font-mono);
+		font-size: var(--text-xs);
+		color: var(--color-text-tertiary);
+	}
+
+	.filebar-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+		margin-left: auto;
+	}
+
+	.filebar-actions button {
+		padding: var(--space-2) var(--space-4);
+		font-size: var(--text-sm);
 	}
 
 	button {

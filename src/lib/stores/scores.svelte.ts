@@ -28,6 +28,30 @@ class ScoresStore {
 	/** Absolute epoch ms at which a rate-limited caller may retry. */
 	retryAtMs = $state<number | null>(null);
 
+	/**
+	 * Per-platform scores as the rules left them, before any refinement.
+	 *
+	 * Kept so the UI can show what the AI actually changed. Without it the two stages are
+	 * indistinguishable on screen: numbers appear, numbers quietly differ, and nothing tells
+	 * the reader a second pass happened at all.
+	 */
+	ruleBasedScores = $state<Record<string, number>>({});
+	/** How long the refinement round trip took, once it has finished. */
+	refineMs = $state<number | null>(null);
+
+	/** How many platforms the refinement moved. Zero is a valid, meaningful answer. */
+	get adjustedCount(): number {
+		return this.results.filter((r) => this.adjustmentFor(r.platformId) !== null).length;
+	}
+
+	/** Signed change the refinement made to one platform, or null if it left it alone. */
+	adjustmentFor(platformId: string): number | null {
+		const before = this.ruleBasedScores[platformId];
+		const after = this.results.find((r) => r.platformId === platformId)?.overallScore;
+		if (before === undefined || after === undefined || before === after) return null;
+		return after - before;
+	}
+
 	/** Past scans, newest first. */
 	history = $state<ScanHistoryEntry[]>([]);
 
@@ -114,7 +138,13 @@ class ScoresStore {
 		this.provider = 'rule-based';
 		this.refinementUnavailable = false;
 		this.retryAtMs = null;
+		this.refineMs = null;
 		this.viewingHistory = false;
+
+		// Snapshot before refinement can touch anything, so the UI can name the difference.
+		this.ruleBasedScores = Object.fromEntries(
+			this.results.map((r) => [r.platformId, r.overallScore])
+		);
 
 		void this.persist(fileName);
 	}
@@ -189,6 +219,8 @@ class ScoresStore {
 		this.cancelRefinement();
 		this.controller = new AbortController();
 		this.refining = true;
+		this.refineMs = null;
+		const startedAt = Date.now();
 
 		try {
 			const outcome = await refineScores({
@@ -223,6 +255,7 @@ class ScoresStore {
 			log.info('refinement finished', { outcome: outcome.status });
 		} finally {
 			this.refining = false;
+			this.refineMs = Date.now() - startedAt;
 		}
 	}
 
@@ -239,6 +272,8 @@ class ScoresStore {
 		this.provider = null;
 		this.refinementUnavailable = false;
 		this.retryAtMs = null;
+		this.refineMs = null;
+		this.ruleBasedScores = {};
 		this.viewingHistory = false;
 		// History and previousScan deliberately survive: "scan another" starts a new scan, it
 		// does not erase what came before.

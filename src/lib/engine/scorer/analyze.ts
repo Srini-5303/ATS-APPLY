@@ -87,12 +87,13 @@ export function buildAnalysis(input: ScoringInput): ResumeAnalysis {
 
 	const sectionSet: ReadonlySet<SectionType> = new Set(input.resumeSections);
 
-	// Canonicalised once here so all six profiles match against identical vocabulary.
+	// Lowercased but deliberately NOT canonicalised — folding synonyms here would make every
+	// matcher see identical input. See the note on `buildResumeTermSet`.
 	const resumeTerms = buildResumeTermSet(uniqueTerms(input.resumeText), input.resumeSkills);
 
-	const jdTerms = input.jobDescription
-		? scoringTerms(parseJobDescription(input.jobDescription))
-		: [];
+	const parsedJd = input.jobDescription ? parseJobDescription(input.jobDescription) : null;
+	const jdTerms = parsedJd ? scoringTerms(parsedJd) : [];
+	const jdRequiredTerms: ReadonlySet<string> = new Set(parsedJd?.requiredSkills ?? []);
 
 	return {
 		input,
@@ -110,6 +111,7 @@ export function buildAnalysis(input: ScoringInput): ResumeAnalysis {
 			input.experience.length > 0 &&
 			input.experience.some((e) => e.dates?.start != null || e.dates?.isCurrent === true),
 		jdTerms,
+		jdRequiredTerms,
 		resumeTerms: [...resumeTerms]
 	};
 }

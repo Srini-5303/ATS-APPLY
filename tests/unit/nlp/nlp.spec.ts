@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { STOP_WORDS, isStopWord } from '$engine/nlp/stopwords';
 import { tokenize, uniqueTerms } from '$engine/nlp/tokenizer';
-import { inverseDocumentFrequency, termFrequency, tfidf } from '$engine/nlp/tfidf';
 import {
 	ALL_GROUPS,
 	canonicalize,
@@ -64,35 +63,6 @@ describe('tokenizer', () => {
 	it('has a stop list of a sane size', () => {
 		expect(STOP_WORDS.size).toBeGreaterThan(100);
 		for (const word of STOP_WORDS) expect(word).toBe(word.toLowerCase());
-	});
-});
-
-describe('tf-idf', () => {
-	it('normalises term frequency by document length', () => {
-		const tf = termFrequency('kubernetes kubernetes docker');
-		expect(tf.get('kubernetes')).toBeCloseTo(2 / 3, 5);
-		expect(tf.get('docker')).toBeCloseTo(1 / 3, 5);
-	});
-
-	it('gives a rare term a higher idf than a common one', () => {
-		const corpus = ['kubernetes docker', 'docker aws', 'docker azure'];
-		expect(inverseDocumentFrequency('kubernetes', corpus)).toBeGreaterThan(
-			inverseDocumentFrequency('docker', corpus)
-		);
-	});
-
-	it('stays finite when a term appears in every document', () => {
-		// The Laplace smoothing exists for exactly this case.
-		const corpus = ['docker', 'docker', 'docker'];
-		expect(Number.isFinite(inverseDocumentFrequency('docker', corpus))).toBe(true);
-	});
-
-	it('is zero for a term absent from the document', () => {
-		expect(tfidf('rust', 'go and python', ['go', 'rust'])).toBe(0);
-	});
-
-	it('handles an empty document', () => {
-		expect(termFrequency('').size).toBe(0);
 	});
 });
 

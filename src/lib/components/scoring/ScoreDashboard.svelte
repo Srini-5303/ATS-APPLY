@@ -5,6 +5,7 @@
 	import { resumeStore } from '$stores/resume.svelte';
 	import { scoresStore } from '$stores/scores.svelte';
 	import ScoreCard from './ScoreCard.svelte';
+	import ScoringStages from './ScoringStages.svelte';
 
 	let exporting = $state(false);
 
@@ -67,20 +68,7 @@
 		</dl>
 	</div>
 
-	<p class="provenance" data-testid="provenance">
-		{#if scoresStore.refining}
-			<span class="pulse" aria-hidden="true"></span>
-			Refining with AI…
-		{:else if scoresStore.retryAtMs}
-			Rule-based scoring. AI refinement is rate limited — try again shortly.
-		{:else if scoresStore.refinementUnavailable}
-			Rule-based scoring. AI refinement was unavailable.
-		{:else if scoresStore.provider && scoresStore.provider !== 'rule-based'}
-			Refined by AI on top of rule-based scoring.
-		{:else}
-			Rule-based scoring.
-		{/if}
-	</p>
+	<ScoringStages />
 
 	{#if scoresStore.topSuggestions.length > 0}
 		<div class="wins">
@@ -176,32 +164,6 @@
 
 	.stats .down {
 		color: var(--color-amber);
-	}
-
-	.provenance {
-		display: flex;
-		align-items: center;
-		gap: var(--space-2);
-		font-size: var(--text-sm);
-		color: var(--color-text-tertiary);
-	}
-
-	.pulse {
-		width: 8px;
-		height: 8px;
-		border-radius: var(--radius-full);
-		background: var(--color-cyan);
-		animation: pulse 1.4s ease-in-out infinite;
-	}
-
-	@keyframes pulse {
-		0%,
-		100% {
-			opacity: 0.3;
-		}
-		50% {
-			opacity: 1;
-		}
 	}
 
 	.wins {

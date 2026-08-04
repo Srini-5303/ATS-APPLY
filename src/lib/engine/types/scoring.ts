@@ -227,8 +227,16 @@ export interface ResumeAnalysis {
 	bulletStyleCount: number;
 	hasStructuredExperience: boolean;
 	experienceHasDates: boolean;
-	/** Canonicalised JD requirement terms; empty in general mode. */
+	/** Canonicalised JD requirement terms, required ones first; empty in general mode. */
 	jdTerms: string[];
+	/**
+	 * The subset of `jdTerms` the posting lists as required rather than preferred.
+	 *
+	 * The job parser has always drawn this distinction — a stateful scan for "Requirements"
+	 * against "Nice to have" — but `scoringTerms()` flattened both into one list, so missing a
+	 * hard requirement cost exactly as much as missing a bonus.
+	 */
+	jdRequiredTerms: ReadonlySet<string>;
 	resumeTerms: string[];
 }
 

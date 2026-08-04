@@ -1,17 +1,26 @@
+import { stem, stemTerm } from '../../nlp/stemmer';
 import { variantsOf } from '../../nlp/synonyms';
 import type { KeywordStrategy } from '../../types/scoring';
 
 /**
  * Keyword matching strategies (PRD §7.5).
  *
- * The three strategies compose rather than duplicate: fuzzy is exact plus synonyms, semantic
- * is fuzzy plus partial overlap. Adding a platform means picking one of these, never writing
- * a fourth.
+ * The three compose rather than duplicate, and each maps onto what its platforms actually do:
+ *
+ * - `exact`    — literal token match. Taleo, Workday and SuccessFactors index the string.
+ * - `fuzzy`    — plus curated synonyms. iCIMS normalises skills onto a controlled taxonomy.
+ * - `semantic` — plus stemming and partial overlap. Lever's documented feature is word
+ *                stemming; Greenhouse's parser is the most forgiving of the six.
+ *
+ * Adding a platform means picking one of these, never writing a fourth.
  */
 
 export interface MatchOutcome {
 	matched: string[];
-	/** Matched only after synonym expansion — surfaced so the UI can explain the difference. */
+	/**
+	 * Matched by something looser than a literal hit — a synonym, a shared stem or a partial
+	 * overlap. Surfaced so the UI can explain the difference, and credited at a discount.
+	 */
 	synonymMatched: string[];
 	missing: string[];
 }
@@ -22,14 +31,41 @@ export type Matcher = (
 	resumeText: string
 ) => MatchOutcome;
 
-function exactHit(term: string, resumeTerms: ReadonlySet<string>, resumeText: string): boolean {
-	if (resumeTerms.has(term)) return true;
-	// Multi-word terms never appear as a single token.
-	return term.includes(' ') && resumeText.includes(term);
+/**
+ * Everything a matcher needs about the resume side.
+ *
+ * `stems` is a thunk so the index is built once per call and only by the strategies that use
+ * it — `exact` and `fuzzy` never pay for it.
+ */
+interface MatchContext {
+	resumeTerms: ReadonlySet<string>;
+	resumeText: string;
+	stems: () => ReadonlySet<string>;
+	stemmedText: () => string;
 }
 
-function synonymHit(term: string, resumeTerms: ReadonlySet<string>, resumeText: string): boolean {
-	return variantsOf(term).some((variant) => exactHit(variant, resumeTerms, resumeText));
+function exactHit(term: string, ctx: MatchContext): boolean {
+	if (ctx.resumeTerms.has(term)) return true;
+	// Multi-word terms never appear as a single token.
+	return term.includes(' ') && ctx.resumeText.includes(term);
+}
+
+function synonymHit(term: string, ctx: MatchContext): boolean {
+	return variantsOf(term).some((variant) => exactHit(variant, ctx));
+}
+
+/**
+ * Morphological match: `collaborating` on the resume answering `collaborate` in the posting.
+ *
+ * The stem index is built from the resume's own surface forms at call time rather than folded
+ * into `buildResumeTermSet` — see the note there for why that distinction is load-bearing.
+ */
+function stemHit(term: string, ctx: MatchContext): boolean {
+	// Phrases are where this earns its keep. Single-word plurals are mostly enumerated in the
+	// synonym groups already, but nobody lists every inflection of every phrase — "distributed
+	// system" against "distributed systems", "systems design" against "system design".
+	if (term.includes(' ')) return ctx.stemmedText().includes(stemTerm(term));
+	return ctx.stems().has(stemTerm(term));
 }
 
 /**
@@ -54,10 +90,10 @@ function isVariantSuffix(remainder: string): boolean {
  * Conservative by design — a false keyword match tells a candidate they are covered when they
  * are not, which is worse than reporting the gap.
  */
-function partialHit(term: string, resumeTerms: ReadonlySet<string>): boolean {
+function partialHit(term: string, ctx: MatchContext): boolean {
 	if (term.length < 4) return false;
 
-	for (const candidate of resumeTerms) {
+	for (const candidate of ctx.resumeTerms) {
 		if (candidate.length < 4) continue;
 		if (candidate === term) return true;
 
@@ -68,25 +104,45 @@ function partialHit(term: string, resumeTerms: ReadonlySet<string>): boolean {
 	return false;
 }
 
-function build(
-	test: (term: string, resumeTerms: ReadonlySet<string>, resumeText: string) => boolean,
-	synonymTest?: (term: string, resumeTerms: ReadonlySet<string>, resumeText: string) => boolean
-): Matcher {
+/**
+ * Builds a matcher from one loose test.
+ *
+ * Every hit that is not literal is recorded in `synonymMatched` and therefore credited at a
+ * discount. That used to be true of synonym hits only: a partial overlap fell through the
+ * attribution check and scored as though it were exact, so the *weakest* mechanism paid no
+ * penalty while the strongest curated one did.
+ */
+function build(test: (term: string, ctx: MatchContext) => boolean): Matcher {
 	return (jdTerms, resumeTerms, resumeText) => {
+		let stemIndex: ReadonlySet<string> | null = null;
+		let stemmedResume: string | null = null;
+
+		const ctx: MatchContext = {
+			resumeTerms,
+			resumeText,
+			stems: () => {
+				stemIndex ??= new Set([...resumeTerms].map((t) => stemTerm(t)));
+				return stemIndex;
+			},
+			stemmedText: () => {
+				stemmedResume ??= resumeText.split(/\s+/).map(stem).join(' ');
+				return stemmedResume;
+			}
+		};
+
 		const matched: string[] = [];
 		const synonymMatched: string[] = [];
 		const missing: string[] = [];
 
 		for (const term of jdTerms) {
-			if (exactHit(term, resumeTerms, resumeText)) {
+			if (exactHit(term, ctx)) {
 				matched.push(term);
 				continue;
 			}
 
-			if (test(term, resumeTerms, resumeText)) {
+			if (test(term, ctx)) {
 				matched.push(term);
-				// Attribute the looser hit so the UI can say *how* it matched.
-				if (synonymTest?.(term, resumeTerms, resumeText) !== false) synonymMatched.push(term);
+				synonymMatched.push(term);
 				continue;
 			}
 
@@ -99,14 +155,13 @@ function build(
 
 const exact: Matcher = build(() => false);
 
-const fuzzy: Matcher = build((term, resumeTerms, resumeText) =>
-	synonymHit(term, resumeTerms, resumeText)
-);
+const fuzzy: Matcher = build((term, ctx) => synonymHit(term, ctx));
 
+// Stemming lives here rather than in `fuzzy` because it is Lever's documented mechanism, and
+// keeping it out of `fuzzy` leaves iCIMS a genuinely distinct middle tier: curated synonyms
+// but no morphology.
 const semantic: Matcher = build(
-	(term, resumeTerms, resumeText) =>
-		synonymHit(term, resumeTerms, resumeText) || partialHit(term, resumeTerms),
-	(term, resumeTerms, resumeText) => synonymHit(term, resumeTerms, resumeText)
+	(term, ctx) => synonymHit(term, ctx) || stemHit(term, ctx) || partialHit(term, ctx)
 );
 
 export const MATCHERS: Readonly<Record<KeywordStrategy, Matcher>> = { exact, fuzzy, semantic };

@@ -75,12 +75,9 @@
 			<span class="headline ok" data-testid="upload-done">
 				{resumeStore.file?.name ?? 'Resume'} parsed
 			</span>
-			<span class="sub">
-				{resumeStore.resume?.metadata.wordCount ?? 0} words ·
-				{resumeStore.resume?.metadata.pageCount ?? 0} page(s) ·
-				{resumeStore.resume?.sections.length ?? 0} sections ·
-				{resumeStore.resume?.skills.length ?? 0} skills
-			</span>
+			<!-- The counts used to be repeated here and again in the extraction panel directly
+			     below. One place, and it is the place that shows what is missing too. -->
+			<span class="sub">Check what was read from it below, then score.</span>
 		{:else}
 			<span class="headline">Upload your resume</span>
 			<span class="sub">

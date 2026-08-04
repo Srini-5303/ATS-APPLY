@@ -5,7 +5,7 @@
     "passes": false,
     "dimensions": {
       "formatting": 69,
-      "keywordMatch": 10,
+      "keywordMatch": 12,
       "sections": 100,
       "experience": 57,
       "education": 80,
@@ -19,11 +19,11 @@
   },
   {
     "platform": "taleo",
-    "overall": 53,
+    "overall": 54,
     "passes": false,
     "dimensions": {
       "formatting": 71,
-      "keywordMatch": 10,
+      "keywordMatch": 12,
       "sections": 100,
       "experience": 57,
       "education": 70,
@@ -38,11 +38,11 @@
   },
   {
     "platform": "icims",
-    "overall": 59,
-    "passes": false,
+    "overall": 60,
+    "passes": true,
     "dimensions": {
       "formatting": 80,
-      "keywordMatch": 10,
+      "keywordMatch": 12,
       "sections": 100,
       "experience": 57,
       "education": 80,
@@ -60,7 +60,7 @@
     "passes": true,
     "dimensions": {
       "formatting": 86,
-      "keywordMatch": 13,
+      "keywordMatch": 14,
       "sections": 100,
       "experience": 57,
       "education": 80,
@@ -77,7 +77,7 @@
     "passes": true,
     "dimensions": {
       "formatting": 88,
-      "keywordMatch": 13,
+      "keywordMatch": 14,
       "sections": 100,
       "experience": 57,
       "education": 80,
@@ -90,11 +90,11 @@
   },
   {
     "platform": "successfactors",
-    "overall": 61,
+    "overall": 62,
     "passes": false,
     "dimensions": {
       "formatting": 71,
-      "keywordMatch": 10,
+      "keywordMatch": 12,
       "sections": 100,
       "experience": 57,
       "education": 74,

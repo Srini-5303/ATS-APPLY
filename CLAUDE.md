@@ -50,7 +50,7 @@ The scoring engine (`src/lib/engine/`) is **fully decoupled from the UI** — pu
 
 - `parser/` — PDF (pdfjs-dist) and DOCX (mammoth) extraction, section detection, contact/date parsing. Entry: `parseResume()`
 - `scorer/` — Deterministic scoring against 6 ATS profiles. Entry: `scoreResume()`. Each profile in `scorer/profiles/` defines weights for formatting, keywords, sections, experience, education
-- `nlp/` — Custom TF-IDF, tokenizer, synonym expansion (8+ industries), skills taxonomy
+- `nlp/` — Tokenizer, conservative stemmer, synonym expansion (8+ industries), skills taxonomy
 - `llm/` — Gemini client, Groq fallback, prompt templates, `LLMAnalysis` types
 - `job-parser/` — Extracts structured requirements from job description text
 
