@@ -11,7 +11,9 @@
       "education": 100,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[critical] Add the requirements this posting names that your resume does not"
+    ]
   },
   {
     "platform": "taleo",
@@ -25,7 +27,9 @@
       "education": 100,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[critical] Add the requirements this posting names that your resume does not"
+    ]
   },
   {
     "platform": "icims",
@@ -39,7 +43,9 @@
       "education": 100,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[critical] Add the requirements this posting names that your resume does not"
+    ]
   },
   {
     "platform": "greenhouse",
@@ -53,7 +59,9 @@
       "education": 100,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[critical] Add the requirements this posting names that your resume does not"
+    ]
   },
   {
     "platform": "lever",
@@ -67,7 +75,9 @@
       "education": 100,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[critical] Add the requirements this posting names that your resume does not"
+    ]
   },
   {
     "platform": "successfactors",
@@ -81,6 +91,8 @@
       "education": 100,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[critical] Add the requirements this posting names that your resume does not"
+    ]
   }
 ]

@@ -35,6 +35,14 @@ function asImpact(value: unknown): Impact {
 	return IMPACTS.includes(s as Impact) ? (s as Impact) : 'medium';
 }
 
+/**
+ * Models sometimes fill the slot with "No changes needed" rather than returning an empty
+ * array. That is a valid verdict but not a recommendation, and it reads as filler under a
+ * heading that promises improvements.
+ */
+const NON_SUGGESTION =
+	/^(?:no|none|n\/a)\b.*\b(?:change|action|improvement|issue|recommendation|suggestion|needed|required)\b|^(?:looks good|well structured|already)\b/i;
+
 function parseSuggestions(value: unknown, system: string): Suggestion[] {
 	if (!Array.isArray(value)) return [];
 
@@ -45,7 +53,7 @@ function parseSuggestions(value: unknown, system: string): Suggestion[] {
 			const r = raw as Record<string, unknown>;
 
 			const summary = asString(r.summary, 160);
-			if (!summary) return null;
+			if (!summary || NON_SUGGESTION.test(summary)) return null;
 
 			const details = Array.isArray(r.details)
 				? r.details

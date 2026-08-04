@@ -19,8 +19,16 @@ export const icims: AtsProfile = {
 	requiredSections: ['experience', 'education'],
 	quirks: [bonusWhen('icims.rich-skill-taxonomy', (c) => c.input.resumeSkills.length >= 10, 5)],
 	meta: {
-		parserType: 'ALEX NLP (grammar-based)',
+		parserType: 'HireAbility ALEX (grammar-based NLP)',
 		philosophy: 'Semantic matching with role-fit scoring',
-		marketShare: '~15% of the Fortune 500'
+		marketShare: '~15% of the Fortune 500',
+		breaks: [
+			'More layout-tolerant than the strict enterprise parsers',
+			'Graphics-heavy and template-driven resumes still lose content',
+			'Skills buried only in prose are weaker than an explicit skills section'
+		],
+		ranking:
+			'Normalises skills onto a controlled taxonomy before matching, so common variants resolve to the same concept, then scores role fit.',
+		autoReject: null
 	}
 };

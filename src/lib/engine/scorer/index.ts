@@ -18,6 +18,7 @@ import { scoreFormatting } from './dimensions/formatting';
 import { scoreQuantification } from './dimensions/quantification';
 import { scoreSections } from './dimensions/sections';
 import { ALL_PROFILES, PROFILES } from './profiles';
+import { buildSuggestions } from './suggestions';
 
 /**
  * Deterministic scoring entry point.
@@ -115,6 +116,17 @@ export function scoreWithProfile(analysis: ResumeAnalysis, profile: AtsProfile):
 
 	const overallScore = clampScore(weighted + adjustment);
 
+	// Quirk advice first — it is the platform-specific part — then the dimension rules from
+	// PRD §7.10, deduplicated by summary.
+	const merged = [...suggestions];
+	const seen = new Set(merged.map((s) => s.summary));
+	for (const suggestion of buildSuggestions(breakdown, analysis, profile)) {
+		if (!seen.has(suggestion.summary)) {
+			seen.add(suggestion.summary);
+			merged.push(suggestion);
+		}
+	}
+
 	return {
 		platformId: profile.id,
 		system: profile.system,
@@ -123,7 +135,7 @@ export function scoreWithProfile(analysis: ResumeAnalysis, profile: AtsProfile):
 		// Always derived from the profile, never taken from a model response (ADR 0001 §3).
 		passesFilter: overallScore >= profile.passingScore,
 		breakdown,
-		suggestions
+		suggestions: merged
 	};
 }
 

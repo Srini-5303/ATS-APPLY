@@ -40,6 +40,17 @@ export const workday: AtsProfile = {
 	meta: {
 		parserType: 'Proprietary',
 		philosophy: 'Strict, keyword-heavy, format-sensitive',
-		marketShare: '~40% of the Fortune 500'
+		marketShare: '~40% of the Fortune 500',
+		breaks: [
+			'Multi-column layouts are read straight across the page, interleaving the columns',
+			'Table cells are flattened or dropped on import',
+			'Content in headers and footers is frequently lost',
+			'Documents past two pages are truncated during import',
+			'Section headings outside its taxonomy are filed as unclassified and may be discarded'
+		],
+		ranking:
+			'No single match score is shown to recruiters. Candidates surface through saved-search filters over the parsed profile, so an unparsed field is an absent field.',
+		autoReject:
+			'Knockout questions on the application form itself, not the resume — but an unparsed profile fails the filters that follow.'
 	}
 };

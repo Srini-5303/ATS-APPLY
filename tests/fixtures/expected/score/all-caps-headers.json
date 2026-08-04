@@ -11,7 +11,11 @@
       "education": 80,
       "quantification": 0
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Describe what you did in each role",
+      "[medium] Simplify the layout so it survives parsing"
+    ]
   },
   {
     "platform": "taleo",
@@ -26,7 +30,10 @@
       "quantification": 0
     },
     "suggestions": [
-      "[critical] List more skills explicitly"
+      "[critical] List more skills explicitly",
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Describe what you did in each role",
+      "[medium] Simplify the layout so it survives parsing"
     ]
   },
   {
@@ -41,7 +48,10 @@
       "education": 80,
       "quantification": 0
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Describe what you did in each role"
+    ]
   },
   {
     "platform": "greenhouse",
@@ -55,7 +65,10 @@
       "education": 80,
       "quantification": 0
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Describe what you did in each role"
+    ]
   },
   {
     "platform": "lever",
@@ -69,7 +82,10 @@
       "education": 80,
       "quantification": 0
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Describe what you did in each role"
+    ]
   },
   {
     "platform": "successfactors",
@@ -83,6 +99,10 @@
       "education": 80,
       "quantification": 0
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Describe what you did in each role",
+      "[medium] Simplify the layout so it survives parsing"
+    ]
   }
 ]

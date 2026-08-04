@@ -82,6 +82,37 @@ describe('prompt', () => {
 		}
 	});
 
+	it('carries each platform’s researched detail into the prompt', () => {
+		// The point of holding this on the profile rather than writing it into the prompt as
+		// prose: it cannot drift from the numbers it sits beside.
+		const prompt = buildRefinementPrompt({ resumeText: 'x', baseline: baselineScores() });
+
+		for (const profile of ALL_PROFILES) {
+			expect(prompt).toContain(profile.meta.ranking);
+			for (const breaks of profile.meta.breaks) expect(prompt).toContain(breaks);
+			if (profile.meta.autoReject) expect(prompt).toContain(profile.meta.autoReject);
+		}
+	});
+
+	it('states each pass threshold from the profile, never as prose', () => {
+		const prompt = buildRefinementPrompt({ resumeText: 'x', baseline: baselineScores() });
+		for (const profile of ALL_PROFILES) {
+			expect(prompt).toContain(`Passes at: ${String(profile.passingScore)}`);
+		}
+	});
+
+	it('demands suggestions be grounded in the resume', () => {
+		// Without this the model returns boilerplate that would apply to any resume.
+		const prompt = buildRefinementPrompt({ resumeText: 'x', baseline: baselineScores() });
+		expect(prompt).toContain('quote the resume');
+		expect(prompt).toContain('omit it');
+	});
+
+	it('flags the platform notes as researched rather than measured', () => {
+		const prompt = buildRefinementPrompt({ resumeText: 'x', baseline: baselineScores() });
+		expect(prompt).toContain('researched, not measured');
+	});
+
 	it('exposes thresholds that match the profiles exactly', () => {
 		for (const [system, threshold] of Object.entries(passThresholds())) {
 			const profile = ALL_PROFILES.find((p) => p.system === system);
@@ -202,6 +233,35 @@ describe('reconcile', () => {
 				expect(r.overallScore).toBeLessThanOrEqual(100);
 			}
 		}
+	});
+
+	it.each([
+		'No changes needed',
+		'None required',
+		'No action needed for this platform',
+		'Looks good as is'
+	])('drops %s, which is a verdict rather than a recommendation', (summary) => {
+		const { results } = reconcile(baseline, {
+			results: [{ system: 'Workday', adjustment: 0, suggestions: [{ summary }] }]
+		});
+
+		const workday = results.find((r) => r.platformId === 'workday');
+		expect(workday?.suggestions.some((s) => s.summary === summary)).toBe(false);
+	});
+
+	it('keeps a real suggestion that merely mentions the word "change"', () => {
+		const { results } = reconcile(baseline, {
+			results: [
+				{
+					system: 'Workday',
+					adjustment: 0,
+					suggestions: [{ summary: 'Change the DeadPool header to separate title from stack' }]
+				}
+			]
+		});
+
+		const workday = results.find((r) => r.platformId === 'workday');
+		expect(workday?.suggestions.some((s) => s.summary.includes('DeadPool'))).toBe(true);
 	});
 
 	it('coerces a malformed suggestion instead of dropping the whole response', () => {

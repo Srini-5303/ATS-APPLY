@@ -1,86 +1,98 @@
 [
   {
     "platform": "workday",
-    "overall": 85,
+    "overall": 79,
     "passes": true,
     "dimensions": {
       "formatting": 95,
-      "keywordMatch": 53,
+      "keywordMatch": 33,
       "sections": 100,
       "experience": 100,
       "education": 100,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field"
+    ]
   },
   {
     "platform": "taleo",
-    "overall": 83,
+    "overall": 76,
     "passes": true,
     "dimensions": {
       "formatting": 95,
-      "keywordMatch": 53,
+      "keywordMatch": 33,
       "sections": 100,
       "experience": 100,
       "education": 100,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field"
+    ]
   },
   {
     "platform": "icims",
-    "overall": 90,
+    "overall": 84,
     "passes": true,
     "dimensions": {
       "formatting": 96,
-      "keywordMatch": 53,
+      "keywordMatch": 33,
       "sections": 100,
       "experience": 100,
       "education": 100,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field"
+    ]
   },
   {
     "platform": "greenhouse",
-    "overall": 96,
+    "overall": 92,
     "passes": true,
     "dimensions": {
       "formatting": 98,
-      "keywordMatch": 53,
+      "keywordMatch": 35,
       "sections": 100,
       "experience": 100,
       "education": 100,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field"
+    ]
   },
   {
     "platform": "lever",
-    "overall": 98,
+    "overall": 94,
     "passes": true,
     "dimensions": {
       "formatting": 98,
-      "keywordMatch": 53,
+      "keywordMatch": 35,
       "sections": 100,
       "experience": 100,
       "education": 100,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field"
+    ]
   },
   {
     "platform": "successfactors",
-    "overall": 87,
+    "overall": 82,
     "passes": true,
     "dimensions": {
       "formatting": 95,
-      "keywordMatch": 53,
+      "keywordMatch": 33,
       "sections": 100,
       "experience": 100,
       "education": 100,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field"
+    ]
   }
 ]

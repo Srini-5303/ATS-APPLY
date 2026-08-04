@@ -11,7 +11,10 @@
       "education": 80,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Add the skills section"
+    ]
   },
   {
     "platform": "taleo",
@@ -27,7 +30,9 @@
     },
     "suggestions": [
       "[critical] List more skills explicitly",
-      "[critical] Add the standard resume sections"
+      "[critical] Add the standard resume sections",
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Add the skills section"
     ]
   },
   {
@@ -42,7 +47,9 @@
       "education": 80,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field"
+    ]
   },
   {
     "platform": "greenhouse",
@@ -56,7 +63,9 @@
       "education": 80,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field"
+    ]
   },
   {
     "platform": "lever",
@@ -70,7 +79,9 @@
       "education": 80,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field"
+    ]
   },
   {
     "platform": "successfactors",
@@ -85,7 +96,9 @@
       "quantification": 100
     },
     "suggestions": [
-      "[high] Add the standard resume sections"
+      "[high] Add the standard resume sections",
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Add the skills section"
     ]
   }
 ]

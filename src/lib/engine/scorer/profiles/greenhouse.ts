@@ -31,6 +31,13 @@ export const greenhouse: AtsProfile = {
 	meta: {
 		parserType: 'Fine-tuned LLM',
 		philosophy: 'No auto-scoring; human-driven scorecards',
-		marketShare: 'Common across tech'
+		marketShare: 'Common across tech',
+		breaks: [
+			'Very tolerant of layout — reads narrative prose well',
+			'Weak, unquantified bullets are the real risk here rather than formatting'
+		],
+		ranking:
+			'No automatic candidate score by default. Talent Matching surfaces candidates, and hiring decisions run through structured human scorecards, so substance beats keyword density.',
+		autoReject: null
 	}
 };

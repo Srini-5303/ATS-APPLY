@@ -56,6 +56,15 @@ export const successfactors: AtsProfile = {
 	meta: {
 		parserType: 'Textkernel',
 		philosophy: 'Joule AI stack ranking, profile-first',
-		marketShare: '~15% of the Fortune 500'
+		marketShare: '~15% of the Fortune 500',
+		breaks: [
+			'Builds a structured employment timeline, so roles without dates cannot be placed on it',
+			'A role lacking a recognisable title / employer / date header may not register as a position at all',
+			'Multi-column layouts and tables degrade field extraction'
+		],
+		ranking:
+			'Joule AI stack-ranks the parsed candidate profile rather than the document, so anything that fails to reach a profile field cannot contribute.',
+		autoReject:
+			'No automatic rejection, but an incomplete profile ranks poorly and can drop out of the shortlist.'
 	}
 };

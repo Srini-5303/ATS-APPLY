@@ -1,120 +1,444 @@
-import { DIMENSIONS, type ScoreResult } from '$engine/types/scoring';
+import { PROFILES } from '$engine/scorer/profiles';
+import { DIMENSIONS, type Impact, type ScoreResult } from '$engine/types/scoring';
 
 /**
- * Client-side PDF report (PRD §12.2).
+ * Client-side PDF report.
  *
- * jsPDF is ~350KB, so it is imported dynamically — the great majority of sessions never
- * export, and paying for it on every page load would be the single largest item in the
- * bundle.
+ * jsPDF is ~350KB and most sessions never export, so it is imported dynamically.
+ *
+ * Deliberately printed dark-on-white rather than in the app's dark theme: this is a document
+ * people forward and print, and a full-bleed dark background is unreadable on paper and
+ * wastes toner.
  */
 
-const LABELS: Record<string, string> = {
-	formatting: 'Formatting',
-	keywordMatch: 'Keywords',
-	sections: 'Sections',
-	experience: 'Experience',
-	education: 'Education',
-	quantification: 'Quantification'
+/** A score this far below a platform's threshold is borderline rather than a clean fail. */
+const MARGINAL_BAND = 8;
+
+type Status = 'PASS' | 'MARGINAL' | 'FAIL';
+
+const INK = { text: 17, muted: 110, rule: 205, head: 245 } as const;
+const TONE: Record<Status, [number, number, number]> = {
+	PASS: [22, 128, 82],
+	MARGINAL: [176, 122, 12],
+	FAIL: [190, 52, 52]
+};
+
+const DIMENSION_HEADS: Record<string, string> = {
+	formatting: 'FORMAT',
+	keywordMatch: 'KEYWORDS',
+	sections: 'SECTIONS',
+	experience: 'EXPER',
+	education: 'EDUC',
+	quantification: 'QUANT'
 };
 
 export interface ReportInput {
 	results: ScoreResult[];
 	averageScore: number;
 	passingCount: number;
+	candidateName?: string;
 	fileName?: string;
 	targeted: boolean;
+}
+
+function statusOf(result: ScoreResult, threshold: number): Status {
+	if (result.passesFilter) return 'PASS';
+	return result.overallScore >= threshold - MARGINAL_BAND ? 'MARGINAL' : 'FAIL';
+}
+
+function band(score: number): string {
+	if (score >= 85) return 'Excellent';
+	if (score >= 70) return 'Good';
+	if (score >= 55) return 'Fair';
+	if (score >= 40) return 'Weak';
+	return 'Poor';
+}
+
+/**
+ * Formatting issues collapsed across platforms.
+ *
+ * Every platform sees the same document, so listing "Heavy use of all-caps text" once per
+ * card printed the same sentence six times and buried everything else.
+ */
+function uniqueIssues(results: ScoreResult[]): { issue: string; platforms: string[] }[] {
+	const byIssue = new Map<string, string[]>();
+
+	for (const result of results) {
+		for (const issue of result.breakdown.formatting.issues) {
+			const platforms = byIssue.get(issue) ?? [];
+			platforms.push(result.system);
+			byIssue.set(issue, platforms);
+		}
+	}
+
+	return [...byIssue].map(([issue, platforms]) => ({ issue, platforms }));
+}
+
+/**
+ * Keyword coverage aggregated across platforms.
+ *
+ * A term counts as found if any platform matched it, and as missing only if none did — the
+ * strict and lenient matchers disagree by design, so a per-platform list would contradict
+ * itself.
+ */
+function keywordCoverage(results: ScoreResult[]): { matched: string[]; missing: string[] } {
+	const matched = new Set<string>();
+	const seen = new Set<string>();
+
+	for (const result of results) {
+		for (const term of result.breakdown.keywordMatch.matched) {
+			matched.add(term);
+			seen.add(term);
+		}
+		for (const term of result.breakdown.keywordMatch.missing) seen.add(term);
+	}
+
+	return {
+		matched: [...matched].sort(),
+		missing: [...seen].filter((t) => !matched.has(t)).sort()
+	};
+}
+
+const IMPACT_ORDER: Record<Impact, number> = { critical: 0, high: 1, medium: 2, low: 3 };
+
+function rankedSuggestions(results: ScoreResult[]) {
+	const merged = new Map<
+		string,
+		{ summary: string; detail: string; impact: Impact; platforms: string[] }
+	>();
+
+	for (const result of results) {
+		for (const s of result.suggestions) {
+			const existing = merged.get(s.summary);
+			if (existing) {
+				if (!existing.platforms.includes(result.system)) existing.platforms.push(result.system);
+				continue;
+			}
+			merged.set(s.summary, {
+				summary: s.summary,
+				detail: s.details[0] ?? '',
+				impact: s.impact,
+				platforms: [result.system]
+			});
+		}
+	}
+
+	return [...merged.values()]
+		.sort((a, b) => IMPACT_ORDER[a.impact] - IMPACT_ORDER[b.impact])
+		.slice(0, 8);
 }
 
 export async function exportReport(input: ReportInput): Promise<void> {
 	const { jsPDF } = await import('jspdf');
 	const doc = new jsPDF({ unit: 'pt', format: 'letter' });
 
-	const margin = 56;
-	const width = doc.internal.pageSize.getWidth();
+	const pageWidth = doc.internal.pageSize.getWidth();
+	const pageHeight = doc.internal.pageSize.getHeight();
+	const margin = 48;
+	const right = pageWidth - margin;
+	const width = right - margin;
+
 	let y = margin;
 
-	const line = (text: string, size = 11, weight: 'normal' | 'bold' = 'normal', gap = 16) => {
-		// A new page before the footer margin, so text never runs off the sheet.
-		if (y > doc.internal.pageSize.getHeight() - margin) {
-			doc.addPage();
-			y = margin;
-		}
-		doc.setFont('helvetica', weight);
-		doc.setFontSize(size);
-		doc.text(text, margin, y);
-		y += gap;
+	const gray = (level: number) => {
+		doc.setTextColor(level);
 	};
 
-	line('ATS Screener report', 20, 'bold', 26);
-	line(
-		`${input.targeted ? 'Targeted scan' : 'General ATS readiness'} · ${new Date().toLocaleDateString()}`,
-		10,
-		'normal',
-		14
-	);
-	if (input.fileName) line(input.fileName, 10, 'normal', 22);
-	else y += 8;
+	/** Starts a new page when the next block would not fit. */
+	const ensure = (needed: number) => {
+		if (y + needed <= pageHeight - margin - 24) return;
+		doc.addPage();
+		y = margin;
+	};
 
-	line(
-		`Average ${String(input.averageScore)} / 100 · ${String(input.passingCount)} of 6 platforms likely to pass`,
-		12,
-		'bold',
-		24
+	const text = (value: string, size: number, weight: 'normal' | 'bold' = 'normal', x = margin) => {
+		doc.setFont('helvetica', weight);
+		doc.setFontSize(size);
+		doc.text(value, x, y);
+	};
+
+	const paragraph = (value: string, size = 9, leading = 12) => {
+		doc.setFont('helvetica', 'normal');
+		doc.setFontSize(size);
+		for (const line of doc.splitTextToSize(value, width) as string[]) {
+			ensure(leading);
+			doc.text(line, margin, y);
+			y += leading;
+		}
+	};
+
+	const rule = () => {
+		doc.setDrawColor(INK.rule);
+		doc.setLineWidth(0.5);
+		doc.line(margin, y, right, y);
+	};
+
+	const heading = (value: string) => {
+		ensure(40);
+		y += 12;
+		gray(INK.text);
+		text(value, 12, 'bold');
+		y += 6;
+		rule();
+		y += 14;
+	};
+
+	// ── Header ────────────────────────────────────────────────────────────────
+	gray(INK.muted);
+	text(input.targeted ? 'TARGETED SCAN' : 'GENERAL READINESS', 8, 'bold');
+	y += 18;
+
+	gray(INK.text);
+	text('ATS Compatibility Report', 22, 'bold');
+	y += 26;
+
+	rule();
+	y += 16;
+
+	// Metadata row: three labelled columns.
+	const columns: [string, string][] = [
+		['PREPARED FOR', input.candidateName ?? input.fileName ?? 'Candidate'],
+		['DATE OF ANALYSIS', new Date().toLocaleDateString(undefined, { dateStyle: 'long' })],
+		['OVERALL SCORE', `${String(input.averageScore)}/100`]
+	];
+
+	const columnWidth = width / columns.length;
+	for (const [index, [label, value]] of columns.entries()) {
+		const x = margin + index * columnWidth;
+		gray(INK.muted);
+		text(label, 7, 'bold', x);
+		gray(INK.text);
+		doc.setFont('helvetica', 'bold');
+		doc.setFontSize(12);
+		doc.text(value, x, y + 15);
+	}
+	y += 34;
+	rule();
+	y += 4;
+
+	// ── Executive summary ─────────────────────────────────────────────────────
+	heading('EXECUTIVE SUMMARY');
+	gray(INK.text);
+
+	const weakest = [...input.results].sort((a, b) => a.overallScore - b.overallScore)[0];
+	paragraph(
+		`This resume was analysed against 6 enterprise ATS platforms. ` +
+			`${String(input.passingCount)} of 6 returned a passing score. The average compatibility ` +
+			`rating is ${String(input.averageScore)}/100, classified as ${band(input.averageScore)}. ` +
+			(weakest
+				? `${weakest.system} scores lowest at ${String(weakest.overallScore)}/100, so the ` +
+					`recommendations below are ordered by the impact they would have there first.`
+				: '')
 	);
+	y += 4;
+
+	// ── 1. Platform table ─────────────────────────────────────────────────────
+	heading('1. PLATFORM COMPATIBILITY SCORES');
+
+	const cols = [
+		{ head: 'PLATFORM', w: 96, align: 'left' as const },
+		{ head: 'OVERALL', w: 52, align: 'right' as const },
+		...DIMENSIONS.map((d) => ({ head: DIMENSION_HEADS[d] ?? d, w: 52, align: 'right' as const })),
+		{ head: 'STATUS', w: 60, align: 'right' as const }
+	];
+
+	const totalW = cols.reduce((sum, c) => sum + c.w, 0);
+	const scale = width / totalW;
+
+	const drawRow = (
+		cells: string[],
+		opts: { bold?: boolean; size?: number; tone?: [number, number, number] } = {}
+	) => {
+		let x = margin;
+		doc.setFont('helvetica', opts.bold ? 'bold' : 'normal');
+		doc.setFontSize(opts.size ?? 8);
+
+		for (const [i, cell] of cells.entries()) {
+			const col = cols[i];
+			if (!col) continue;
+			const w = col.w * scale;
+
+			// Only the status cell is coloured; a fully coloured row is noise.
+			if (opts.tone && i === cells.length - 1) doc.setTextColor(...opts.tone);
+			else gray(opts.bold ? INK.text : INK.text);
+
+			doc.text(cell, col.align === 'right' ? x + w - 4 : x, y, {
+				align: col.align === 'right' ? 'right' : 'left'
+			});
+			x += w;
+		}
+	};
+
+	// Header band. Three-argument form: jsPDF's single-argument overload is typed as a string.
+	doc.setFillColor(INK.head, INK.head, INK.head);
+	doc.rect(margin, y - 10, width, 16, 'F');
+	gray(INK.muted);
+	drawRow(
+		cols.map((c) => c.head),
+		{ bold: true, size: 7 }
+	);
+	y += 16;
 
 	for (const result of input.results) {
-		line(
-			`${result.system} — ${String(result.overallScore)}/100 (${result.passesFilter ? 'likely to pass' : 'may be filtered'})`,
-			13,
-			'bold',
-			18
+		ensure(16);
+
+		// The real per-platform threshold, so MARGINAL means "close to this platform's bar"
+		// rather than something derived from the score itself.
+		const status = statusOf(result, PROFILES[result.platformId].passingScore);
+
+		drawRow(
+			[
+				result.system,
+				String(result.overallScore),
+				...DIMENSIONS.map((d) => String(result.breakdown[d].score)),
+				status
+			],
+			{ tone: TONE[status] }
 		);
 
-		const dims = DIMENSIONS.map(
-			(d) => `${LABELS[d] ?? d} ${String(result.breakdown[d].score)}`
-		).join('   ');
-		line(dims, 9, 'normal', 14);
-
-		for (const issue of result.breakdown.formatting.issues.slice(0, 3)) {
-			line(`  • ${issue}`, 9, 'normal', 12);
-		}
-
-		y += 8;
+		y += 6;
+		doc.setDrawColor(238);
+		doc.line(margin, y, right, y);
+		y += 10;
 	}
 
-	const suggestions = dedupeSuggestions(input.results);
-	if (suggestions.length > 0) {
-		line('What to fix first', 14, 'bold', 20);
+	// ── 2. Recommendations ────────────────────────────────────────────────────
+	const suggestions = rankedSuggestions(input.results);
+	const issues = uniqueIssues(input.results);
 
+	if (suggestions.length > 0 || issues.length > 0) {
+		heading('2. RECOMMENDATIONS FOR IMPROVEMENT');
+
+		let index = 1;
 		for (const suggestion of suggestions) {
-			line(`[${suggestion.impact}] ${suggestion.summary}`, 10, 'bold', 14);
-			for (const detail of suggestion.details.slice(0, 2)) {
-				// Wrap manually: jsPDF does not reflow.
-				for (const wrapped of doc.splitTextToSize(detail, width - margin * 2) as string[]) {
-					line(`  ${wrapped}`, 9, 'normal', 12);
+			ensure(34);
+			gray(INK.muted);
+			text(String(index).padStart(2, '0'), 8, 'bold');
+			gray(INK.text);
+			text(suggestion.summary, 9, 'bold', margin + 22);
+
+			doc.setTextColor(
+				...TONE[
+					suggestion.impact === 'low'
+						? 'PASS'
+						: suggestion.impact === 'medium'
+							? 'MARGINAL'
+							: 'FAIL'
+				]
+			);
+			doc.setFontSize(7);
+			doc.setFont('helvetica', 'bold');
+			doc.text(suggestion.impact.toUpperCase(), right, y, { align: 'right' });
+			y += 12;
+
+			if (suggestion.detail) {
+				gray(INK.muted);
+				doc.setFont('helvetica', 'normal');
+				doc.setFontSize(8);
+				for (const line of doc.splitTextToSize(suggestion.detail, width - 22) as string[]) {
+					ensure(11);
+					doc.text(line, margin + 22, y);
+					y += 11;
 				}
 			}
-			y += 6;
+
+			gray(INK.muted);
+			doc.setFontSize(7);
+			doc.text(`Affects: ${suggestion.platforms.join(', ')}`, margin + 22, y);
+			y += 16;
+			index += 1;
 		}
+
+		for (const { issue, platforms } of issues) {
+			ensure(24);
+			gray(INK.muted);
+			text(String(index).padStart(2, '0'), 8, 'bold');
+			gray(INK.text);
+			text(issue, 9, 'bold', margin + 22);
+			y += 12;
+			gray(INK.muted);
+			doc.setFontSize(7);
+			doc.setFont('helvetica', 'normal');
+			doc.text(`Affects: ${platforms.join(', ')}`, margin + 22, y);
+			y += 16;
+			index += 1;
+		}
+	}
+
+	// ── 3. Keyword coverage ───────────────────────────────────────────────────
+	const { matched, missing } = keywordCoverage(input.results);
+
+	if (matched.length > 0 || missing.length > 0) {
+		heading('3. KEYWORD COVERAGE');
+
+		const half = width / 2 - 8;
+		const startY = y;
+
+		gray(INK.muted);
+		text(`FOUND (${String(matched.length)})`, 7, 'bold');
+		doc.text(`NOT FOUND (${String(missing.length)})`, margin + half + 16, y);
+		y += 12;
+
+		doc.setFont('helvetica', 'normal');
+		doc.setFontSize(8);
+
+		const left = doc.splitTextToSize(matched.join(', ') || '—', half) as string[];
+		const rightCol = doc.splitTextToSize(missing.join(', ') || '—', half) as string[];
+
+		gray(INK.text);
+		let ly = y;
+		for (const line of left.slice(0, 8)) {
+			doc.text(line, margin, ly);
+			ly += 11;
+		}
+
+		gray(INK.muted);
+		let ry = y;
+		for (const line of rightCol.slice(0, 8)) {
+			doc.text(line, margin + half + 16, ry);
+			ry += 11;
+		}
+
+		y = Math.max(ly, ry, startY) + 6;
+	}
+
+	// ── 4. Methodology ────────────────────────────────────────────────────────
+	heading('4. METHODOLOGY');
+	gray(INK.muted);
+	paragraph(
+		'Each platform score is a weighted composite of six dimensions: formatting compliance, ' +
+			'keyword match, section structure, experience quality, education completeness and ' +
+			'quantification. Weights, parsing strictness and keyword-matching strategy differ per ' +
+			'platform and are derived from publicly documented parsing behaviour. Scores are ' +
+			'produced by a deterministic rule-based engine; where an AI pass is available it may ' +
+			'adjust each score by at most 15 points with stated evidence. Pass thresholds are set ' +
+			'per platform rather than at a single cutoff.',
+		8,
+		11
+	);
+
+	// ── Footer on every page ──────────────────────────────────────────────────
+	const pages = doc.getNumberOfPages();
+	for (let page = 1; page <= pages; page++) {
+		doc.setPage(page);
+		doc.setDrawColor(INK.rule);
+		doc.line(margin, pageHeight - 42, right, pageHeight - 42);
+
+		gray(INK.muted);
+		doc.setFont('helvetica', 'normal');
+		doc.setFontSize(7);
+		doc.text(
+			'Independent open-source tool. Not affiliated with any ATS vendor. Scores are estimates, not guarantees.',
+			margin,
+			pageHeight - 30
+		);
+		doc.text(
+			`${input.fileName ?? 'Resume'}  ·  Page ${String(page)} of ${String(pages)}`,
+			right,
+			pageHeight - 30,
+			{ align: 'right' }
+		);
 	}
 
 	doc.save(`ats-report-${new Date().toISOString().slice(0, 10)}.pdf`);
-}
-
-function dedupeSuggestions(results: ScoreResult[]) {
-	const order = { critical: 0, high: 1, medium: 2, low: 3 } as const;
-	const merged = new Map<
-		string,
-		{ summary: string; details: string[]; impact: keyof typeof order }
-	>();
-
-	for (const result of results) {
-		for (const s of result.suggestions) {
-			if (!merged.has(s.summary)) {
-				merged.set(s.summary, { summary: s.summary, details: s.details, impact: s.impact });
-			}
-		}
-	}
-
-	return [...merged.values()].sort((a, b) => order[a.impact] - order[b.impact]).slice(0, 8);
 }

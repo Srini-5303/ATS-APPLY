@@ -31,8 +31,15 @@ export const lever: AtsProfile = {
 		bonusWhen('lever.summary-present', (c) => c.analysis.sectionSet.has('summary'), 3)
 	],
 	meta: {
-		parserType: 'Proprietary (Sovren)',
+		parserType: 'Proprietary (Sovren lineage)',
 		philosophy: 'Word stemming; no algorithmic scoring',
-		marketShare: 'Startups and mid-market'
+		marketShare: 'Startups and mid-market',
+		breaks: [
+			'Highly tolerant of layout',
+			'Very short or telegraphic bullets read poorly in a review-first workflow'
+		],
+		ranking:
+			'No algorithmic ranking. Recruiters search and review directly, with word stemming widening matches, so readable narrative bullets matter more than exact terms.',
+		autoReject: null
 	}
 };

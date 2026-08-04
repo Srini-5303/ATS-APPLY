@@ -27,6 +27,9 @@
 				averageScore: scoresStore.averageScore,
 				passingCount: scoresStore.passingCount,
 				...(resumeStore.file?.name === undefined ? {} : { fileName: resumeStore.file.name }),
+				...(resumeStore.resume?.contact.name == null
+					? {}
+					: { candidateName: resumeStore.resume.contact.name }),
 				targeted: scoresStore.jobDescription.trim() !== ''
 			});
 		} catch (err) {

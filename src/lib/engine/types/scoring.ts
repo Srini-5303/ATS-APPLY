@@ -165,10 +165,27 @@ export interface AtsProfile {
 	readonly passingScore: number;
 	readonly requiredSections: readonly SectionType[];
 	readonly quirks: readonly QuirkRule[];
+	/**
+	 * Domain detail about the real platform.
+	 *
+	 * Feeds the LLM prompt, the UI tooltips and the docs from one place. Keeping it on the
+	 * profile rather than writing it into the prompt as prose is what stops the two from
+	 * drifting — the defect that left PRD §7.9 and §8.2 disagreeing about Taleo's threshold.
+	 *
+	 * These are researched characterisations of publicly documented behaviour, not verified
+	 * measurements. Nobody outside these vendors can observe their scoring directly, and the
+	 * prompt says so.
+	 */
 	readonly meta: {
 		readonly parserType: string;
 		readonly philosophy: string;
 		readonly marketShare: string;
+		/** Specific things known to defeat this parser. */
+		readonly breaks: readonly string[];
+		/** How the platform surfaces or ranks candidates natively. */
+		readonly ranking: string;
+		/** Automatic rejection behaviour, or null where the platform does not auto-reject. */
+		readonly autoReject: string | null;
 	};
 }
 

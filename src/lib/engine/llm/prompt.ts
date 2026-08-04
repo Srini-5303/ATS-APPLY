@@ -33,10 +33,15 @@ function platformSpecs(): string {
 			`### ${p.system} (${p.vendor})`,
 			`- Parser: ${p.meta.parserType}`,
 			`- Philosophy: ${p.meta.philosophy}`,
+			`- Native ranking: ${p.meta.ranking}`,
+			`- Auto-reject: ${p.meta.autoReject ?? 'None.'}`,
+			`- Known to break on:`,
+			...p.meta.breaks.map((b) => `    - ${b}`),
 			`- Parsing strictness: ${p.parsingStrictness.toFixed(2)} (1.00 = least forgiving)`,
 			`- Keyword matching: ${p.keywordStrategy}`,
 			`- Expects sections: ${p.requiredSections.join(', ')}`,
-			`- Weights: ${weights}`
+			`- Scoring weights: ${weights}`,
+			`- Passes at: ${String(p.passingScore)}`
 		].join('\n');
 	}).join('\n\n');
 }
@@ -77,10 +82,31 @@ genuinely fits the target role.
 ## Hard rules
 
 - Adjust each platform's overall score by AT MOST ${String(MAX_ADJUSTMENT)} points in either direction.
-- Every adjustment must cite specific evidence from the resume. No generic advice.
 - If the baseline looks right, return it unchanged. Not adjusting is a valid answer.
 - Do not invent a score from scratch. You are correcting a measurement, not replacing it.
 - Do not restate the baseline's own reasoning back as a suggestion.
+
+### Every suggestion must quote the resume
+
+A suggestion that would apply to any resume is worthless — the reader already knows to "add
+metrics" and "tailor to the role". Each one must **quote or name the specific line, heading,
+role or project it refers to**, and say what to change it to.
+
+Bad:  "Add quantifiable achievements to demonstrate impact."
+Bad:  "Tailor your resume to the job description."
+Good: "The 'DeadPool' project header runs its whole stack together as
+       'DeadPool | Python, PyTorch, FAISS, FastAPI'. Split the title from the technologies so
+       Lever's stemmer indexes each one."
+Good: "Your Brightstar Lottery bullet 'Built a model routing mechanism using the Databricks
+       Python SDK' states no outcome. Add the reliability or cost figure you cite elsewhere."
+
+If you cannot ground a suggestion in something the resume actually says, omit it.
+
+### The platform notes below are researched, not measured
+
+No one outside these vendors observes their scoring directly. Treat the notes as informed
+characterisation of documented behaviour, and do not claim certainty the evidence does not
+support.
 
 ## Mode
 

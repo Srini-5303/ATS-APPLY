@@ -11,7 +11,11 @@
       "education": 0,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Add the education and skills sections",
+      "[high] Complete the education entry"
+    ]
   },
   {
     "platform": "taleo",
@@ -27,7 +31,10 @@
     },
     "suggestions": [
       "[critical] List more skills explicitly",
-      "[critical] Add the standard resume sections"
+      "[critical] Add the standard resume sections",
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Add the education and skills sections",
+      "[high] Complete the education entry"
     ]
   },
   {
@@ -42,7 +49,11 @@
       "education": 0,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Add the education section",
+      "[high] Complete the education entry"
+    ]
   },
   {
     "platform": "greenhouse",
@@ -56,7 +67,11 @@
       "education": 0,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Add the education section",
+      "[high] Complete the education entry"
+    ]
   },
   {
     "platform": "lever",
@@ -70,7 +85,10 @@
       "education": 0,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[high] Complete the education entry"
+    ]
   },
   {
     "platform": "successfactors",
@@ -85,7 +103,10 @@
       "quantification": 100
     },
     "suggestions": [
-      "[high] Add the standard resume sections"
+      "[high] Add the standard resume sections",
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Add the education and skills sections",
+      "[high] Complete the education entry"
     ]
   }
 ]

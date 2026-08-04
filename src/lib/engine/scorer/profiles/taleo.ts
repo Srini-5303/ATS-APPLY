@@ -43,6 +43,16 @@ export const taleo: AtsProfile = {
 	meta: {
 		parserType: 'OCR-based (legacy)',
 		philosophy: 'Literal keyword matching, capable of auto-rejection',
-		marketShare: '~25% of the Fortune 500'
+		marketShare: '~25% of the Fortune 500',
+		breaks: [
+			'OCR misreads decorative fonts, ligatures and unusual glyphs',
+			'Text in headers and footers is commonly lost entirely',
+			'Tables are badly mangled',
+			'Graphics and text boxes yield nothing at all'
+		],
+		ranking:
+			'Req Rank / ACE scoring: Boolean keyword search over indexed fields, matched literally against the requisition and ranked by density. A synonym is simply a different word.',
+		autoReject:
+			'Yes. Required keywords and qualifications can be configured as hard knockouts that filter a candidate before any human sees them.'
 	}
 };

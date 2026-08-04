@@ -11,7 +11,11 @@
       "education": 80,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[critical] Add the requirements this posting names that your resume does not",
+      "[medium] Open more bullets with a strong action verb",
+      "[medium] Simplify the layout so it survives parsing"
+    ]
   },
   {
     "platform": "taleo",
@@ -25,7 +29,11 @@
       "education": 80,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[critical] Add the requirements this posting names that your resume does not",
+      "[medium] Open more bullets with a strong action verb",
+      "[medium] Simplify the layout so it survives parsing"
+    ]
   },
   {
     "platform": "icims",
@@ -39,7 +47,11 @@
       "education": 80,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[critical] Add the requirements this posting names that your resume does not",
+      "[medium] Open more bullets with a strong action verb",
+      "[medium] Simplify the layout so it survives parsing"
+    ]
   },
   {
     "platform": "greenhouse",
@@ -53,7 +65,10 @@
       "education": 80,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[critical] Add the requirements this posting names that your resume does not",
+      "[medium] Open more bullets with a strong action verb"
+    ]
   },
   {
     "platform": "lever",
@@ -67,7 +82,10 @@
       "education": 80,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[critical] Add the requirements this posting names that your resume does not",
+      "[medium] Open more bullets with a strong action verb"
+    ]
   },
   {
     "platform": "successfactors",
@@ -81,6 +99,10 @@
       "education": 80,
       "quantification": 100
     },
-    "suggestions": []
+    "suggestions": [
+      "[critical] Add the requirements this posting names that your resume does not",
+      "[medium] Open more bullets with a strong action verb",
+      "[medium] Simplify the layout so it survives parsing"
+    ]
   }
 ]

@@ -41,11 +41,15 @@ describe('matching strategies', () => {
 		expect(out.missing).toEqual(['k8s']);
 	});
 
-	it('fuzzy adds synonym expansion', () => {
-		// "go" is the canonical form of "golang", so an exact-only matcher misses it.
-		const out = MATCHERS.fuzzy(['go'], buildResumeTermSet(['golang'], []), '');
+	it('fuzzy adds synonym expansion, and reports it as such', () => {
+		const resume = buildResumeTermSet(['golang'], []);
+
+		// Exact sees a different word; fuzzy folds the synonym and credits it at a discount.
+		expect(MATCHERS.exact(['go'], resume, '').matched).toEqual([]);
+
+		const out = MATCHERS.fuzzy(['go'], resume, '');
 		expect(out.matched).toEqual(['go']);
-		expect(out.synonymMatched).toEqual([]);
+		expect(out.synonymMatched).toEqual(['go']);
 	});
 
 	it('semantic adds partial overlap on top of fuzzy', () => {
@@ -69,6 +73,63 @@ describe('matching strategies', () => {
 		const out = MATCHERS.semantic(['go', 'rust'], new Set(), '');
 		expect(out.missing).toEqual(['go', 'rust']);
 		expect(out.matched).toEqual([]);
+	});
+});
+
+describe('platform strategies must actually differ', () => {
+	// The reason the three strategies exist. An earlier version canonicalised resume terms
+	// *before* matching, so "k8s" was already "kubernetes" by the time a matcher saw it and
+	// `exact` behaved identically to `semantic` — every platform returned the same keyword
+	// score on every resume, and the six cards were decorative.
+	const jd =
+		'Requirements: Kubernetes, PostgreSQL, JavaScript, machine learning, Amazon Web Services';
+
+	function scoreFor(resumeText: string, platform: 'workday' | 'icims' | 'lever') {
+		const analysis = buildAnalysis(makeInput({ resumeText, jobDescription: jd }));
+		return scoreKeywords(analysis, PROFILES[platform]).score;
+	}
+
+	const canonical = 'Kubernetes PostgreSQL JavaScript machine learning Amazon Web Services';
+	const abbreviated = 'k8s postgres js ML AWS';
+
+	it('agrees when the resume uses the same words as the posting', () => {
+		expect(scoreFor(canonical, 'workday')).toBe(100);
+		expect(scoreFor(canonical, 'icims')).toBe(100);
+		expect(scoreFor(canonical, 'lever')).toBe(100);
+	});
+
+	it('splits sharply when the resume uses abbreviations', () => {
+		// Workday's literal matcher genuinely will not credit "k8s" for "Kubernetes"; iCIMS
+		// and Lever will. That difference is the product's whole premise.
+		expect(scoreFor(abbreviated, 'workday')).toBe(0);
+		expect(scoreFor(abbreviated, 'icims')).toBeGreaterThan(50);
+		expect(scoreFor(abbreviated, 'lever')).toBeGreaterThan(50);
+	});
+
+	it('never scores a lenient platform below a strict one', () => {
+		// The ordering that must always hold: a looser matcher can only ever find more. Even
+		// on canonical text semantic pulls ahead, because partial matching also catches
+		// inflections across the industry vocabulary.
+		for (const text of [canonical, 'k8s postgres js ML AWS', TECH_RESUME]) {
+			const analysis = buildAnalysis(makeInput({ resumeText: text }));
+			const workday = scoreKeywords(analysis, PROFILES.workday).score;
+			const icims = scoreKeywords(analysis, PROFILES.icims).score;
+			const lever = scoreKeywords(analysis, PROFILES.lever).score;
+
+			expect(icims).toBeGreaterThanOrEqual(workday);
+			expect(lever).toBeGreaterThanOrEqual(icims);
+		}
+	});
+
+	it('separates platforms in general mode when the resume uses shorthand', () => {
+		const analysis = buildAnalysis(
+			makeInput({ resumeText: 'k8s postgres js ML AWS docker terraform kafka redis grpc' })
+		);
+
+		const workday = scoreKeywords(analysis, PROFILES.workday).score;
+		const lever = scoreKeywords(analysis, PROFILES.lever).score;
+
+		expect(lever).toBeGreaterThan(workday);
 	});
 });
 

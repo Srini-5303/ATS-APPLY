@@ -73,36 +73,40 @@ export function getSkillDomain(skill: string): Domain | null {
  */
 export const INDUSTRY_CONFIDENCE_MIN = 4;
 
-export interface IndustryCoverage {
+/**
+ * The industry a resume belongs to, plus that industry's full vocabulary.
+ *
+ * Deliberately does **not** decide what counts as a match: which terms a resume "has" depends
+ * on the platform's keyword strategy, and Workday's exact matcher genuinely will not credit
+ * "k8s" for "Kubernetes" where Lever's stemmer will. Returning the vocabulary lets the scorer
+ * apply each platform's own matcher, keeping this module free of scoring concerns.
+ */
+export interface IndustryVocabulary {
 	industry: Domain;
-	matched: string[];
-	missing: string[];
-	/** 0–100. */
-	score: number;
+	skills: string[];
 }
 
 /**
- * How completely a resume covers the vocabulary of its own industry.
+ * Coverage ratio at which the dimension reaches 100.
  *
- * Scaled so that covering `FULL_COVERAGE_RATIO` of an industry's canonical terms scores 100.
- * Nobody lists every term in their field, so requiring 100% coverage would make the ceiling
- * unreachable and flatten the top of the range — the exact failure this replaced.
+ * Nobody lists every term in their field, so requiring full coverage would put the ceiling
+ * out of reach. But set too low and the opposite happens: at 0.25 a dense technical resume
+ * saturated on all six platforms, hiding the difference between a strict matcher finding
+ * 30 terms and a lenient one finding 35. 0.40 keeps a strong resume inside the range where
+ * the strategies still separate.
  */
-export const FULL_COVERAGE_RATIO = 0.25;
+export const FULL_COVERAGE_RATIO = 0.4;
 
-export function industryCoverage(text: string): IndustryCoverage | null {
+export function industryVocabulary(text: string): IndustryVocabulary | null {
 	const top = detectIndustry(text)[0];
 	if (!top || top.matchCount < INDUSTRY_CONFIDENCE_MIN) return null;
 
-	const lower = text.toLowerCase();
-	const tokens = new Set(uniqueTerms(text).map((t) => canonicalize(t)));
-	const skills = getIndustrySkills(top.industry);
+	return { industry: top.industry, skills: getIndustrySkills(top.industry) };
+}
 
-	const matched = skills.filter((s) => containsTerm(lower, tokens, s));
-	const missing = skills.filter((s) => !containsTerm(lower, tokens, s));
-
-	const ratio = matched.length / skills.length;
-	const score = Math.min(100, Math.round((ratio / FULL_COVERAGE_RATIO) * 100));
-
-	return { industry: top.industry, matched, missing, score };
+/** Turns a matched-term count into a 0-100 score. */
+export function coverageScore(matchedCount: number, totalSkills: number): number {
+	if (totalSkills === 0) return 0;
+	const ratio = matchedCount / totalSkills;
+	return Math.max(0, Math.min(100, Math.round((ratio / FULL_COVERAGE_RATIO) * 100)));
 }

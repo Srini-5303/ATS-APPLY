@@ -11,7 +11,12 @@
       "education": 0,
       "quantification": 0
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Describe what you did in each role",
+      "[critical] Add the experience and education and skills sections",
+      "[high] Complete the education entry"
+    ]
   },
   {
     "platform": "taleo",
@@ -27,7 +32,11 @@
     },
     "suggestions": [
       "[critical] List more skills explicitly",
-      "[critical] Add the standard resume sections"
+      "[critical] Add the standard resume sections",
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Describe what you did in each role",
+      "[critical] Add the experience and education and skills sections",
+      "[high] Complete the education entry"
     ]
   },
   {
@@ -42,7 +51,12 @@
       "education": 0,
       "quantification": 0
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Describe what you did in each role",
+      "[critical] Add the experience and education sections",
+      "[high] Complete the education entry"
+    ]
   },
   {
     "platform": "greenhouse",
@@ -56,7 +70,12 @@
       "education": 0,
       "quantification": 0
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Describe what you did in each role",
+      "[critical] Add the experience and education sections",
+      "[high] Complete the education entry"
+    ]
   },
   {
     "platform": "lever",
@@ -70,7 +89,12 @@
       "education": 0,
       "quantification": 0
     },
-    "suggestions": []
+    "suggestions": [
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Describe what you did in each role",
+      "[critical] Add the experience section",
+      "[high] Complete the education entry"
+    ]
   },
   {
     "platform": "successfactors",
@@ -87,7 +111,11 @@
     "suggestions": [
       "[critical] Add start and end dates to every role",
       "[high] Give each role a clear title, employer and date line",
-      "[high] Add the standard resume sections"
+      "[high] Add the standard resume sections",
+      "[medium] Broaden the vocabulary recruiters search for in your field",
+      "[critical] Describe what you did in each role",
+      "[critical] Add the experience and education and skills sections",
+      "[high] Complete the education entry"
     ]
   }
 ]

@@ -10,10 +10,12 @@ import {
 	variantsOf
 } from '$engine/nlp/synonyms';
 import {
+	coverageScore,
 	detectIndustry,
+	FULL_COVERAGE_RATIO,
 	getIndustrySkills,
 	getSkillDomain,
-	industryCoverage
+	industryVocabulary
 } from '$engine/nlp/taxonomy';
 
 describe('tokenizer', () => {
@@ -172,35 +174,46 @@ describe('taxonomy', () => {
 		);
 	});
 
-	describe('industryCoverage', () => {
-		it('scores a broad technical resume highly', () => {
-			const text =
-				'Go Python TypeScript PostgreSQL Redis Kubernetes Docker AWS Terraform Kafka gRPC GraphQL React CI/CD distributed systems observability microservices';
-			const coverage = industryCoverage(text);
-
-			expect(coverage?.industry).toBe('technology');
-			expect(coverage?.score).toBeGreaterThan(40);
-		});
-
-		it('scores a thin resume lower than a broad one', () => {
-			const thin = industryCoverage('Go Python Docker Kubernetes');
-			const broad = industryCoverage(
-				'Go Python Docker Kubernetes AWS Terraform Kafka PostgreSQL Redis React GraphQL CI/CD'
+	describe('industryVocabulary', () => {
+		it('returns the industry and its full term list', () => {
+			// Deliberately returns the vocabulary rather than a score: which terms count as
+			// present depends on the platform's matching strategy, so that decision belongs to
+			// the scorer.
+			const vocabulary = industryVocabulary(
+				'Go Python TypeScript PostgreSQL Redis Kubernetes Docker AWS Terraform Kafka'
 			);
 
-			expect(broad!.score).toBeGreaterThan(thin!.score);
+			expect(vocabulary?.industry).toBe('technology');
+			expect(vocabulary?.skills.length).toBeGreaterThan(50);
+			expect(vocabulary?.skills).toContain('kubernetes');
 		});
 
 		it('returns null when no industry clears the confidence bar', () => {
 			// One stray term must not classify a resume — the caller redistributes the weight
 			// instead of inventing a score (ADR 0001 §1).
-			expect(industryCoverage('I once used SQL at university')).toBeNull();
+			expect(industryVocabulary('I once used SQL at university')).toBeNull();
+		});
+	});
+
+	describe('coverageScore', () => {
+		it('is zero for no matches', () => {
+			expect(coverageScore(0, 100)).toBe(0);
 		});
 
-		it('lists what is missing so the advice can be specific', () => {
-			const coverage = industryCoverage('Go Python Docker Kubernetes AWS');
-			expect(coverage?.missing.length).toBeGreaterThan(0);
-			expect(coverage?.matched).toContain('kubernetes');
+		it('reaches 100 at the full-coverage ratio', () => {
+			expect(coverageScore(FULL_COVERAGE_RATIO * 100, 100)).toBe(100);
+		});
+
+		it('rises with the number of matched terms', () => {
+			expect(coverageScore(30, 120)).toBeGreaterThan(coverageScore(20, 120));
+		});
+
+		it('caps rather than exceeding 100', () => {
+			expect(coverageScore(120, 120)).toBe(100);
+		});
+
+		it('handles an empty vocabulary without dividing by zero', () => {
+			expect(coverageScore(0, 0)).toBe(0);
 		});
 	});
 });

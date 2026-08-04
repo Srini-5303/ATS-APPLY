@@ -1,4 +1,4 @@
-import { canonicalize, variantsOf } from '../../nlp/synonyms';
+import { variantsOf } from '../../nlp/synonyms';
 import type { KeywordStrategy } from '../../types/scoring';
 
 /**
@@ -111,12 +111,23 @@ const semantic: Matcher = build(
 
 export const MATCHERS: Readonly<Record<KeywordStrategy, Matcher>> = { exact, fuzzy, semantic };
 
-/** Canonicalised, deduplicated resume vocabulary for matching against. */
+/**
+ * The resume's vocabulary in its **own surface forms**, lowercased but not canonicalised.
+ *
+ * Folding "k8s" to "kubernetes" here would defeat the whole point of having three strategies:
+ * every matcher would then see identical input and `exact` could never behave differently
+ * from `semantic`. That is exactly what happened — all six platforms returned the same
+ * keyword score on every resume, because the distinction had been erased one layer earlier.
+ *
+ * The synonym fold still happens, but inside `fuzzy` and `semantic`, where it belongs.
+ */
 export function buildResumeTermSet(terms: string[], skills: string[]): Set<string> {
 	const set = new Set<string>();
+
 	for (const term of [...terms, ...skills]) {
-		const canonical = canonicalize(term);
-		if (canonical !== '') set.add(canonical);
+		const normalized = term.trim().toLowerCase();
+		if (normalized !== '') set.add(normalized);
 	}
+
 	return set;
 }
