@@ -13,7 +13,9 @@ test-results/
 blob-report/
 .playwright/
 
-# outputs/
+# Scratch working material: real resumes, generated reports, research notes.
+# Never commit — this has been re-added by `git add -A` twice already.
+outputs/
 
 # Secrets — never commit. See .env.example for the full variable list.
 .env
