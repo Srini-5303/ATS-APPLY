@@ -12,6 +12,7 @@
 	 * them which five.
 	 */
 	const adjustment = $derived(scoresStore.adjustmentFor(result.platformId));
+	const ruleBasedScore = $derived(scoresStore.ruleBasedScores[result.platformId]);
 
 	const LABELS: Record<Dimension, string> = {
 		formatting: 'Formatting',
@@ -24,27 +25,31 @@
 
 	// Six bars, not five. PRD §12.2 drew five and omitted quantification even though it
 	// carries up to 20% of the weight (ADR 0001 §5).
+	//
+	// In general mode the keyword slot measures industry-vocabulary coverage rather than JD
+	// matching, so that bar is labelled for what it actually shows (ADR 0001 §1).
 	const bars = $derived(
 		DIMENSIONS.map((d) => ({
 			dimension: d,
-			label: LABELS[d],
+			label:
+				d === 'keywordMatch' && result.breakdown.keywordMatch.isIndustryProxy
+					? 'Industry terms'
+					: LABELS[d],
 			score: result.breakdown[d].score
 		}))
-	);
-
-	// In general mode the keyword slot measures industry-vocabulary coverage rather than JD
-	// matching, so the bar is labelled for what it actually shows (ADR 0001 §1).
-	const keywordLabel = $derived(
-		result.breakdown.keywordMatch.isIndustryProxy ? 'Industry terms' : 'Keywords'
 	);
 
 	const RADIUS = 34;
 	const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 	const dashOffset = $derived(CIRCUMFERENCE * (1 - result.overallScore / 100));
 
-	const tone = $derived(
-		result.overallScore >= 75 ? 'good' : result.overallScore >= 50 ? 'mid' : 'low'
-	);
+	function toneFor(score: number): 'good' | 'mid' | 'low' {
+		if (score >= 75) return 'good';
+		if (score >= 50) return 'mid';
+		return 'low';
+	}
+
+	const tone = $derived(toneFor(result.overallScore));
 </script>
 
 <article class="card" data-testid="score-card" data-platform={result.platformId}>
@@ -72,8 +77,7 @@
 				<span
 					class="adjustment"
 					data-testid="ai-adjustment"
-					title="The AI review moved this score by {adjustment} from the rule-based {scoresStore
-						.ruleBasedScores[result.platformId]}"
+					title="The AI review moved this score by {adjustment} from the rule-based {ruleBasedScore}"
 				>
 					{adjustment > 0 ? '+' : ''}{adjustment}
 				</span>
@@ -84,7 +88,7 @@
 	{#if adjustment !== null}
 		<p class="sr-only">
 			The AI review adjusted this score by {adjustment} points from the rule-based
-			{scoresStore.ruleBasedScores[result.platformId]}.
+			{ruleBasedScore}.
 		</p>
 	{/if}
 
@@ -100,9 +104,7 @@
 	<ul class="bars">
 		{#each bars as bar (bar.dimension)}
 			<li>
-				<span class="bar-label">
-					{bar.dimension === 'keywordMatch' ? keywordLabel : bar.label}
-				</span>
+				<span class="bar-label">{bar.label}</span>
 				<span class="track-bar">
 					<span class="fill" style:width="{bar.score}%"></span>
 				</span>

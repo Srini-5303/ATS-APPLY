@@ -1,7 +1,6 @@
 import type { BulletFact, ResumeAnalysis, ScoringInput } from '../types/scoring';
 import type { SectionType } from '../types/parser';
-import { isBulletLine, stripBullet } from '../parser/text';
-import { bulletGlyphOf } from '../parser/text';
+import { bulletGlyphOf, isBulletLine, stripBullet } from '../parser/text';
 import { parseJobDescription, scoringTerms } from '../job-parser';
 import { uniqueTerms } from '../nlp/tokenizer';
 import { buildResumeTermSet } from './matching';

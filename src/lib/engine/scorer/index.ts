@@ -43,10 +43,19 @@ export const QUIRK_MAX = 15;
 export const DIMENSION_QUIRK_MIN = -25;
 export const DIMENSION_QUIRK_MAX = 15;
 
+function clamp(value: number, min: number, max: number): number {
+	return Math.max(min, Math.min(max, value));
+}
+
 function clampScore(value: number): number {
 	// Number.isFinite guards the whole NaN class rather than any single case (ADR 0001 §4).
 	if (!Number.isFinite(value)) return 0;
-	return Math.max(0, Math.min(100, Math.round(value)));
+	return clamp(Math.round(value), 0, 100);
+}
+
+/** A record carrying one value per dimension, so no call site has to assert the key set. */
+function dimensionMap(valueOf: (dimension: Dimension) => number): Record<Dimension, number> {
+	return Object.fromEntries(DIMENSIONS.map((d) => [d, valueOf(d)])) as Record<Dimension, number>;
 }
 
 function buildBreakdown(analysis: ResumeAnalysis, profile: AtsProfile): ScoreBreakdown {
@@ -76,14 +85,13 @@ export function effectiveWeights(
 	profile: AtsProfile,
 	inactive: ReadonlySet<Dimension>
 ): Record<Dimension, number> {
-	const active = DIMENSIONS.filter((d) => !inactive.has(d));
-	const activeTotal = active.reduce((sum, d) => sum + profile.weights[d], 0);
+	const activeTotal = DIMENSIONS.filter((d) => !inactive.has(d)).reduce(
+		(sum, d) => sum + profile.weights[d],
+		0
+	);
 
-	const weights = Object.fromEntries(DIMENSIONS.map((d) => [d, 0])) as Record<Dimension, number>;
-	if (activeTotal <= 0) return weights;
-
-	for (const d of active) weights[d] = profile.weights[d] / activeTotal;
-	return weights;
+	if (activeTotal <= 0) return dimensionMap(() => 0);
+	return dimensionMap((d) => (inactive.has(d) ? 0 : profile.weights[d] / activeTotal));
 }
 
 interface QuirkOutcome {
@@ -95,10 +103,7 @@ interface QuirkOutcome {
 }
 
 function applyQuirks(ctx: QuirkContext, profile: AtsProfile): QuirkOutcome {
-	const byDimension = Object.fromEntries(DIMENSIONS.map((d) => [d, 0])) as Record<
-		Dimension,
-		number
-	>;
+	const raw = dimensionMap(() => 0);
 	let overall = 0;
 	const suggestions: Suggestion[] = [];
 
@@ -107,7 +112,7 @@ function applyQuirks(ctx: QuirkContext, profile: AtsProfile): QuirkOutcome {
 		if (Number.isFinite(delta)) {
 			// A quirk that names a dimension moves that bar; the overall then follows from the
 			// weighted sum rather than from a scalar bolted on afterwards.
-			if (quirk.dimension) byDimension[quirk.dimension] += delta;
+			if (quirk.dimension) raw[quirk.dimension] += delta;
 			else overall += delta;
 		}
 
@@ -115,13 +120,9 @@ function applyQuirks(ctx: QuirkContext, profile: AtsProfile): QuirkOutcome {
 		if (suggestion) suggestions.push(suggestion);
 	}
 
-	for (const d of DIMENSIONS) {
-		byDimension[d] = Math.max(DIMENSION_QUIRK_MIN, Math.min(DIMENSION_QUIRK_MAX, byDimension[d]));
-	}
-
 	return {
-		byDimension,
-		overall: Math.max(QUIRK_MIN, Math.min(QUIRK_MAX, overall)),
+		byDimension: dimensionMap((d) => clamp(raw[d], DIMENSION_QUIRK_MIN, DIMENSION_QUIRK_MAX)),
+		overall: clamp(overall, QUIRK_MIN, QUIRK_MAX),
 		suggestions
 	};
 }
@@ -129,10 +130,7 @@ function applyQuirks(ctx: QuirkContext, profile: AtsProfile): QuirkOutcome {
 export function scoreWithProfile(analysis: ResumeAnalysis, profile: AtsProfile): ScoreResult {
 	const breakdown = buildBreakdown(analysis, profile);
 
-	const baseScores = Object.fromEntries(DIMENSIONS.map((d) => [d, breakdown[d].score])) as Record<
-		Dimension,
-		number
-	>;
+	const baseScores = dimensionMap((d) => breakdown[d].score);
 
 	// Quirks are evaluated against the unadjusted dimensions so that a rule reading
 	// `ctx.dimensions` cannot depend on the order quirks happen to run in.
@@ -146,35 +144,35 @@ export function scoreWithProfile(analysis: ResumeAnalysis, profile: AtsProfile):
 	const inactive = new Set<Dimension>();
 	if (!keywordsActive(analysis)) inactive.add('keywordMatch');
 
-	// An inactive dimension carries zero weight, so a quirk routed to it would contribute
-	// nothing at all. Taleo's skill-density rule is the whole reason Taleo scores low without
-	// a job description; it must not evaporate because the bar it names was dropped. Fall the
-	// delta back onto the overall, which is where it landed before routing existed.
+	// Route each quirk delta to wherever it can still be felt, then bound the residue.
+	const dimensionScores = dimensionMap(() => 0);
 	let overallDelta = overall;
-	for (const d of inactive) {
-		overallDelta += byDimension[d];
-		byDimension[d] = 0;
-	}
-
-	// Whatever the bar cannot absorb still counts against the total.
-	//
-	// A resume with no sections at all sits at 0 on that bar, so Taleo's -24 for three missing
-	// sections would land on a floor and disappear — leaving the platform that punishes this
-	// hardest scoring higher than the one that barely cares. The shortfall spills through at
-	// full strength, which is exactly where it landed before routing existed.
-	const dimensionScores = Object.fromEntries(DIMENSIONS.map((d) => [d, 0])) as Record<
-		Dimension,
-		number
-	>;
 
 	for (const d of DIMENSIONS) {
+		if (inactive.has(d)) {
+			// An inactive dimension carries zero weight, so a quirk routed to it would contribute
+			// nothing at all. Taleo's skill-density rule is the whole reason Taleo scores low
+			// without a job description; it must not evaporate because the bar it names was
+			// dropped. Fall the delta back onto the overall, where it landed before routing
+			// existed, and leave the bar showing its unadjusted value.
+			overallDelta += byDimension[d];
+			dimensionScores[d] = clampScore(baseScores[d]);
+			continue;
+		}
+
+		// Whatever the bar cannot absorb still counts against the total.
+		//
+		// A resume with no sections at all sits at 0 on that bar, so Taleo's -24 for three
+		// missing sections would land on a floor and disappear — leaving the platform that
+		// punishes this hardest scoring higher than the one that barely cares. The shortfall
+		// spills through at full strength, which is exactly where it landed before routing
+		// existed.
 		const raw = baseScores[d] + byDimension[d];
-		const clamped = clampScore(raw);
-		dimensionScores[d] = clamped;
-		if (!inactive.has(d)) overallDelta += raw - clamped;
+		dimensionScores[d] = clampScore(raw);
+		overallDelta += raw - dimensionScores[d];
 	}
 
-	overallDelta = Math.max(QUIRK_MIN, Math.min(QUIRK_MAX, overallDelta));
+	overallDelta = clamp(overallDelta, QUIRK_MIN, QUIRK_MAX);
 
 	// Write the adjusted score back so the bar the user sees is the one that was weighted.
 	for (const d of DIMENSIONS) breakdown[d].score = dimensionScores[d];

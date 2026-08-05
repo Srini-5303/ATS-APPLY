@@ -127,11 +127,6 @@ export interface ScoreResult {
 	suggestions: Suggestion[];
 }
 
-/** A dimension scorer's return value, before weighting. */
-export interface DimensionScore {
-	score: number;
-}
-
 export interface QuirkContext {
 	input: ScoringInput;
 	analysis: ResumeAnalysis;

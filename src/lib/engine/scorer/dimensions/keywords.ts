@@ -1,6 +1,6 @@
 import { coverageScore, industryVocabulary } from '../../nlp/taxonomy';
 import type { AtsProfile, KeywordBreakdown, ResumeAnalysis } from '../../types/scoring';
-import { MATCHERS } from '../matching';
+import { MATCHERS, type MatchOutcome } from '../matching';
 
 /**
  * Keyword match (PRD §7.5, as amended by ADR 0001 §1).
@@ -36,20 +36,33 @@ export function scoreKeywords(analysis: ResumeAnalysis, profile: AtsProfile): Ke
 	return scoreGeneral(analysis, profile);
 }
 
-/** Credited hits, counting a synonym-only match at a discount. */
-function creditedCount(matched: string[], synonymMatched: string[]): number {
-	const exact = matched.length - synonymMatched.length;
-	return exact + synonymMatched.length * SYNONYM_CREDIT;
-}
-
-function scoreTargeted(analysis: ResumeAnalysis, profile: AtsProfile): KeywordBreakdown {
-	const matcher = MATCHERS[profile.keywordStrategy];
-
-	const { matched, synonymMatched, missing } = matcher(
-		analysis.jdTerms,
+/** Runs the platform's own strategy over `terms`; the resume side is the same either way. */
+function match(analysis: ResumeAnalysis, profile: AtsProfile, terms: string[]): MatchOutcome {
+	return MATCHERS[profile.keywordStrategy](
+		terms,
 		new Set(analysis.resumeTerms),
 		analysis.input.resumeText.toLowerCase()
 	);
+}
+
+/** Credit earned by `terms`, counting a synonym-only match at a discount. */
+function credit(
+	terms: string[],
+	synonymMatched: string[],
+	weightOf: (term: string) => number
+): number {
+	const loose = new Set(synonymMatched);
+	return terms.reduce(
+		(sum, term) => sum + weightOf(term) * (loose.has(term) ? SYNONYM_CREDIT : 1),
+		0
+	);
+}
+
+/** Every term counts the same. Used in general mode, where nothing marks a term as required. */
+const UNWEIGHTED = (): number => 1;
+
+function scoreTargeted(analysis: ResumeAnalysis, profile: AtsProfile): KeywordBreakdown {
+	const { matched, synonymMatched, missing } = match(analysis, profile, analysis.jdTerms);
 
 	// A term the posting lists under "Requirements" counts for more than one under "Nice to
 	// have". Both the numerator and the denominator are weighted, so a resume matching every
@@ -58,11 +71,7 @@ function scoreTargeted(analysis: ResumeAnalysis, profile: AtsProfile): KeywordBr
 	const weightOf = (term: string): number =>
 		analysis.jdRequiredTerms.has(term) ? REQUIRED_TERM_WEIGHT : 1;
 
-	const loose = new Set(synonymMatched);
-	const earned = matched.reduce(
-		(sum, term) => sum + weightOf(term) * (loose.has(term) ? SYNONYM_CREDIT : 1),
-		0
-	);
+	const earned = credit(matched, synonymMatched, weightOf);
 	const possible = analysis.jdTerms.reduce((sum, term) => sum + weightOf(term), 0);
 
 	const score = possible === 0 ? 0 : Math.min(100, (earned / possible) * 100);
@@ -85,15 +94,10 @@ function scoreGeneral(analysis: ResumeAnalysis, profile: AtsProfile): KeywordBre
 		return { score: 0, matched: [], missing: [], synonymMatched: [], isIndustryProxy: true };
 	}
 
-	const matcher = MATCHERS[profile.keywordStrategy];
-	const { matched, synonymMatched, missing } = matcher(
-		vocabulary.skills,
-		new Set(analysis.resumeTerms),
-		analysis.input.resumeText.toLowerCase()
-	);
+	const { matched, synonymMatched, missing } = match(analysis, profile, vocabulary.skills);
 
 	return {
-		score: coverageScore(creditedCount(matched, synonymMatched), vocabulary.skills.length),
+		score: coverageScore(credit(matched, synonymMatched, UNWEIGHTED), vocabulary.skills.length),
 		matched,
 		// Only the most useful absent terms; the full list runs to dozens and helps nobody.
 		missing: missing.slice(0, 12),

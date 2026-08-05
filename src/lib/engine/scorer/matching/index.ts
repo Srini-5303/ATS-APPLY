@@ -95,7 +95,6 @@ function partialHit(term: string, ctx: MatchContext): boolean {
 
 	for (const candidate of ctx.resumeTerms) {
 		if (candidate.length < 4) continue;
-		if (candidate === term) return true;
 
 		if (candidate.startsWith(term) && isVariantSuffix(candidate.slice(term.length))) return true;
 		if (term.startsWith(candidate) && isVariantSuffix(term.slice(candidate.length))) return true;

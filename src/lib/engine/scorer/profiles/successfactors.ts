@@ -1,6 +1,6 @@
 import type { AtsProfile } from '../../types/scoring';
 import { isAbbreviatedDegree } from '../dimensions/education';
-import { penaltyWhen, perUnit } from '../quirks/factories';
+import { missingRequiredSections, penaltyWhen, perUnit } from '../quirks/factories';
 
 export const successfactors: AtsProfile = {
 	id: 'successfactors',
@@ -49,7 +49,7 @@ export const successfactors: AtsProfile = {
 		),
 		perUnit(
 			'successfactors.missing-sections',
-			(c) => c.profile.requiredSections.filter((s) => !c.analysis.sectionSet.has(s)).length,
+			missingRequiredSections,
 			5,
 			{
 				summary: 'Add the standard resume sections',

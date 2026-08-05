@@ -51,6 +51,19 @@ test.describe('scan history', () => {
 		await expect(page.getByTestId('score-card')).toHaveCount(6);
 	});
 
+	test('claims no AI adjustment on a stored scan', async ({ page }) => {
+		// A stored scan carries no record of what the rules alone produced. Reusing the live
+		// scan's baseline made the cards report an adjustment that never happened.
+		await scanOnce(page, 'single-column-clean');
+		await scanOnce(page, 'three-line-stub');
+
+		await page.goto('/history');
+		await page.getByTestId('history-list').locator('button').first().click();
+
+		await expect(page.getByTestId('history-viewer')).toBeVisible();
+		await expect(page.getByTestId('ai-adjustment')).toHaveCount(0);
+	});
+
 	test('summarises the journey once there are two scans', async ({ page }) => {
 		await scanOnce(page, 'single-column-clean');
 		await scanOnce(page, 'three-line-stub');

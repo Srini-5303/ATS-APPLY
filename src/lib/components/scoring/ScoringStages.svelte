@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
 	import { scoresStore } from '$stores/scores.svelte';
 
 	/**
@@ -18,41 +17,33 @@
 	 */
 
 	let elapsedMs = $state(0);
-	let timer: ReturnType<typeof setInterval> | null = null;
 
+	// The cleanup runs both when `refining` flips and when the component is destroyed, so the
+	// timer needs no handle outside this effect.
 	$effect(() => {
-		if (scoresStore.refining) {
-			const startedAt = Date.now();
-			elapsedMs = 0;
-			timer = setInterval(() => (elapsedMs = Date.now() - startedAt), 100);
-		} else if (timer) {
-			clearInterval(timer);
-			timer = null;
-		}
+		if (!scoresStore.refining) return;
+
+		const startedAt = Date.now();
+		elapsedMs = 0;
+		const timer = setInterval(() => (elapsedMs = Date.now() - startedAt), 100);
 
 		return () => {
-			if (timer) clearInterval(timer);
-			timer = null;
+			clearInterval(timer);
 		};
-	});
-
-	onDestroy(() => {
-		if (timer) clearInterval(timer);
 	});
 
 	const seconds = (ms: number): string => `${(ms / 1000).toFixed(1)}s`;
 
 	type Stage = 'waiting' | 'running' | 'landed' | 'skipped';
 
-	const aiStage = $derived<Stage>(
-		scoresStore.refining
-			? 'running'
-			: scoresStore.retryAtMs !== null || scoresStore.refinementUnavailable
-				? 'skipped'
-				: scoresStore.provider !== null && scoresStore.provider !== 'rule-based'
-					? 'landed'
-					: 'waiting'
-	);
+	function currentStage(): Stage {
+		if (scoresStore.refining) return 'running';
+		if (scoresStore.retryAtMs !== null || scoresStore.refinementUnavailable) return 'skipped';
+		if (scoresStore.provider !== null && scoresStore.provider !== 'rule-based') return 'landed';
+		return 'waiting';
+	}
+
+	const aiStage = $derived(currentStage());
 
 	/** Model name only — the vendor prefix is noise once the row already says which stage. */
 	const model = $derived(scoresStore.provider?.split(':').at(-1) ?? null);
@@ -174,18 +165,14 @@
 		font-variant-numeric: tabular-nums;
 	}
 
-	.done .index {
+	.done .index,
+	.landed .index {
 		border-color: var(--color-green);
 		color: var(--color-green);
 	}
 
 	.done .state,
 	.landed .state {
-		color: var(--color-green);
-	}
-
-	.landed .index {
-		border-color: var(--color-green);
 		color: var(--color-green);
 	}
 

@@ -35,7 +35,7 @@ const PROTECTED_ENDINGS = ['ss', 'us', 'is', 'os'];
 /** Ordered longest-first: `management` must lose `ment`, not `nt`. */
 const SUFFIXES = ['ments', 'ment', 'ions', 'ion', 'ings', 'ing', 'ers', 'er', 'ed', 'es', 's'];
 
-/** `running` → `runn` → `run`. Only for a doubled consonant that is not `ll`/`ss`/`ff`. */
+/** `running` → `runn` → `run`. Only for a doubled consonant that is not `ll`/`ss`/`ff`/`zz`. */
 function undouble(word: string): string {
 	const last = word.at(-1);
 	const prev = word.at(-2);

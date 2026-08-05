@@ -1,4 +1,5 @@
 import { degreeLevel } from '../../parser/entries';
+import type { EducationEntry } from '../../types/parser';
 import type { EducationBreakdown, ResumeAnalysis } from '../../types/scoring';
 
 /**
@@ -9,14 +10,22 @@ import type { EducationBreakdown, ResumeAnalysis } from '../../types/scoring';
  * school alongside a doctorate.
  */
 
-export const EDUCATION_COMPONENTS = [
-	{ id: 'degree', points: 30 },
-	{ id: 'institution', points: 20 },
-	{ id: 'dates', points: 15 },
-	{ id: 'field', points: 15 },
-	{ id: 'gpa', points: 10 },
-	{ id: 'honors', points: 10 }
-] as const;
+export const EDUCATION_COMPONENTS: readonly {
+	readonly id: string;
+	readonly points: number;
+	readonly present: (entry: EducationEntry) => boolean;
+}[] = [
+	{ id: 'degree', points: 30, present: (e) => Boolean(e.degree) },
+	{ id: 'institution', points: 20, present: (e) => Boolean(e.institution) },
+	{ id: 'dates', points: 15, present: (e) => Boolean(e.dates?.start) },
+	{ id: 'field', points: 15, present: (e) => Boolean(e.field) },
+	{ id: 'gpa', points: 10, present: (e) => Boolean(e.gpa) },
+	{ id: 'honors', points: 10, present: (e) => e.honors.length > 0 }
+];
+
+function pointsFor(entry: EducationEntry): number {
+	return EDUCATION_COMPONENTS.reduce((sum, c) => sum + (c.present(entry) ? c.points : 0), 0);
+}
 
 /** Below this a GPA is better left off the resume than stated. */
 export const GPA_WEAK = 3.0;
@@ -54,52 +63,35 @@ export function scoreEducation(analysis: ResumeAnalysis): EducationBreakdown {
 		return { score: 0, notes };
 	}
 
-	let best = 0;
-	let bestEntry = entries[0];
+	// Ties go to the earliest entry, which is conventionally the most recent degree.
+	const best = entries.reduce((a, b) => (pointsFor(b) > pointsFor(a) ? b : a));
 
-	for (const entry of entries) {
-		let points = 0;
-		if (entry.degree) points += 30;
-		if (entry.institution) points += 20;
-		if (entry.dates?.start) points += 15;
-		if (entry.field) points += 15;
-		if (entry.gpa) points += 10;
-		if (entry.honors.length > 0) points += 10;
+	if (!best.degree)
+		notes.push('State the degree explicitly, e.g. "B.S." or "Bachelor of Science".');
+	if (!best.institution) notes.push('Name the institution on the same line as the degree.');
+	if (!best.dates?.start) notes.push('Add a graduation year.');
+	if (!best.field) notes.push('Name the field of study.');
 
-		if (points > best) {
-			best = points;
-			bestEntry = entry;
-		}
+	const gpa = best.gpa ? Number.parseFloat(best.gpa) : null;
+	if (gpa !== null && Number.isFinite(gpa)) {
+		if (gpa >= GPA_STRONG) notes.push(`GPA of ${best.gpa ?? ''} is worth keeping.`);
+		else if (gpa < GPA_WEAK) notes.push('A GPA below 3.0 is usually better omitted.');
+	} else {
+		notes.push('No GPA was found. Worth stating if it is 3.5 or above — 10 points here.');
 	}
 
-	if (bestEntry) {
-		if (!bestEntry.degree)
-			notes.push('State the degree explicitly, e.g. "B.S." or "Bachelor of Science".');
-		if (!bestEntry.institution) notes.push('Name the institution on the same line as the degree.');
-		if (!bestEntry.dates?.start) notes.push('Add a graduation year.');
-		if (!bestEntry.field) notes.push('Name the field of study.');
-
-		const gpa = bestEntry.gpa ? Number.parseFloat(bestEntry.gpa) : null;
-		if (gpa !== null && Number.isFinite(gpa)) {
-			if (gpa >= GPA_STRONG) notes.push(`GPA of ${bestEntry.gpa ?? ''} is worth keeping.`);
-			else if (gpa < GPA_WEAK) notes.push('A GPA below 3.0 is usually better omitted.');
-		} else {
-			notes.push('No GPA was found. Worth stating if it is 3.5 or above — 10 points here.');
-		}
-
-		// The two components a complete entry usually lacks had no note at all, so a 90 arrived
-		// with nothing explaining the missing 10.
-		if (bestEntry.honors.length === 0) {
-			notes.push(
-				'No honors were found. If you have one — Dean’s List, cum laude, a named scholarship ' +
-					'or fellowship — list it; it is the last 10 points of this dimension.'
-			);
-		}
-
-		if (degreeLevel(bestEntry.degree) >= 4) {
-			notes.push('An advanced degree is a differentiator; keep it near the top of the section.');
-		}
+	// The two components a complete entry usually lacks had no note at all, so a 90 arrived
+	// with nothing explaining the missing 10.
+	if (best.honors.length === 0) {
+		notes.push(
+			'No honors were found. If you have one — Dean’s List, cum laude, a named scholarship ' +
+				'or fellowship — list it; it is the last 10 points of this dimension.'
+		);
 	}
 
-	return { score: Math.max(0, Math.min(100, best)), notes };
+	if (degreeLevel(best.degree) >= 4) {
+		notes.push('An advanced degree is a differentiator; keep it near the top of the section.');
+	}
+
+	return { score: Math.max(0, Math.min(100, pointsFor(best))), notes };
 }

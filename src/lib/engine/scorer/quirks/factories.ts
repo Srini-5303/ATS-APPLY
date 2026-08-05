@@ -84,6 +84,16 @@ export function perUnit(
 	);
 }
 
+/**
+ * How many of the profile's own required sections are absent.
+ *
+ * Shared because two profiles declare the same rule at different severities — the count is
+ * the rule, the points are the platform difference.
+ */
+export function missingRequiredSections(ctx: QuirkContext): number {
+	return ctx.profile.requiredSections.filter((s) => !ctx.analysis.sectionSet.has(s)).length;
+}
+
 /** Award points when a measured value falls inside an inclusive range. */
 export function betweenBonus(
 	id: string,

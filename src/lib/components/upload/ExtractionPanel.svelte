@@ -30,6 +30,16 @@
 	const missing = $derived(EXPECTED.filter((t) => !found.has(t)));
 	const unknownCount = $derived(resume.sections.filter((s) => s.type === 'unknown').length);
 
+	/** The heading to suggest, written the way a reader would type it. */
+	const suggestedHeading = $derived((missing[0] ?? '').replace(/^./, (c) => c.toUpperCase()));
+
+	const contactFields = $derived([
+		{ label: 'name', value: resume.contact.name },
+		{ label: 'email', value: resume.contact.email },
+		{ label: 'phone', value: resume.contact.phone },
+		{ label: 'location', value: resume.contact.location }
+	]);
+
 	const BULLET = /^\s*[-–—•·▪*]/;
 	const bulletCount = $derived(
 		resume.sections.reduce(
@@ -135,11 +145,7 @@
 			{#if missing.length > 0}
 				<p class="note warn">
 					{missing.length === 1 ? 'This section was' : 'These sections were'} not found. Add a plain heading
-					such as “{missing[0] === 'experience'
-						? 'Experience'
-						: missing[0] === 'education'
-							? 'Education'
-							: 'Skills'}” so the parser can file the content under it.
+					such as “{suggestedHeading}” so the parser can file the content under it.
 				</p>
 			{/if}
 			{#if unknownCount > 0}
@@ -154,8 +160,8 @@
 		<div class="field">
 			<h3>Contact</h3>
 			<ul class="chips">
-				{#each [['name', resume.contact.name], ['email', resume.contact.email], ['phone', resume.contact.phone], ['location', resume.contact.location]] as [label, value] (label)}
-					<li class="chip {value ? 'found' : 'absent'}">{label}</li>
+				{#each contactFields as field (field.label)}
+					<li class="chip {field.value ? 'found' : 'absent'}">{field.label}</li>
 				{/each}
 			</ul>
 		</div>

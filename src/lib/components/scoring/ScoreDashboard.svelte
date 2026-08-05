@@ -9,11 +9,13 @@
 
 	let exporting = $state(false);
 
+	const delta = $derived(scoresStore.scoreDelta);
+
 	const shareUrl = $derived(
 		`${resolve('/share')}?${buildShareQuery({
 			score: scoresStore.averageScore,
 			passing: scoresStore.passingCount,
-			delta: scoresStore.scoreDelta,
+			delta,
 			targeted: scoresStore.jobDescription.trim() !== ''
 		})}`
 	);
@@ -57,11 +59,11 @@
 				<dt>Spread</dt>
 				<dd data-testid="spread">{scoresStore.spread} pts</dd>
 			</div>
-			{#if scoresStore.scoreDelta !== null}
+			{#if delta !== null}
 				<div>
 					<dt>Since last scan</dt>
-					<dd class={scoresStore.scoreDelta > 0 ? 'up' : 'down'} data-testid="score-delta">
-						{scoresStore.scoreDelta > 0 ? '+' : ''}{scoresStore.scoreDelta}
+					<dd class={delta > 0 ? 'up' : 'down'} data-testid="score-delta">
+						{delta > 0 ? '+' : ''}{delta}
 					</dd>
 				</div>
 			{/if}

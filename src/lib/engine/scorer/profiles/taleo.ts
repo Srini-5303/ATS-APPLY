@@ -1,6 +1,6 @@
 import type { AtsProfile } from '../../types/scoring';
 import { isAbbreviatedDegree } from '../dimensions/education';
-import { penaltyWhen, perUnit } from '../quirks/factories';
+import { missingRequiredSections, penaltyWhen, perUnit } from '../quirks/factories';
 
 export const taleo: AtsProfile = {
 	id: 'taleo',
@@ -35,7 +35,7 @@ export const taleo: AtsProfile = {
 		),
 		perUnit(
 			'taleo.missing-sections',
-			(c) => c.profile.requiredSections.filter((s) => !c.analysis.sectionSet.has(s)).length,
+			missingRequiredSections,
 			8,
 			{
 				summary: 'Add the standard resume sections',

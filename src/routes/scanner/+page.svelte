@@ -11,14 +11,35 @@
 
 	// An explicit phase union rather than a pile of booleans — the scanner page is where
 	// state combinations multiply fastest.
-	const phase = $derived<Phase>(
-		scoresStore.hasResults ? 'results' : resumeStore.isReady ? 'parsed' : 'upload'
-	);
+	function currentPhase(): Phase {
+		if (scoresStore.hasResults) return 'results';
+		if (resumeStore.isReady) return 'parsed';
+		return 'upload';
+	}
+
+	const phase = $derived(currentPhase());
 
 	const STEPS = ['Upload', 'Parse', 'Score', 'Results'] as const;
-	const stepIndex = $derived(
-		phase === 'results' ? 3 : phase === 'parsed' ? 2 : resumeStore.status === 'parsing' ? 1 : 0
+
+	function stepFor(current: Phase): number {
+		switch (current) {
+			case 'results':
+				return 3;
+			case 'parsed':
+				return 2;
+			case 'upload':
+				return resumeStore.status === 'parsing' ? 1 : 0;
+		}
+	}
+
+	const stepIndex = $derived(stepFor(phase));
+
+	/** Same two controls at the head and the foot of the results — the loop people repeat. */
+	const rescanLabel = $derived(
+		scoresStore.jobDescription.trim() === '' ? 'Re-score' : 'Re-score against this job'
 	);
+
+	const meta = $derived(resumeStore.resume?.metadata ?? null);
 
 	let pasted = $state('');
 
@@ -78,13 +99,12 @@
 		<div class="filebar" data-testid="filebar">
 			<span class="filename">{resumeStore.file?.name ?? 'Pasted text'}</span>
 			<span class="filemeta">
-				{resumeStore.resume?.metadata.wordCount ?? 0} words · {resumeStore.resume?.metadata
-					.pageCount ?? 0}
-				{(resumeStore.resume?.metadata.pageCount ?? 0) === 1 ? 'page' : 'pages'}
+				{meta?.wordCount ?? 0} words · {meta?.pageCount ?? 0}
+				{meta?.pageCount === 1 ? 'page' : 'pages'}
 			</span>
 			<div class="filebar-actions">
 				<button type="button" class="primary" onclick={runScore} data-testid="rescan-top">
-					{scoresStore.jobDescription.trim() === '' ? 'Re-score' : 'Re-score against this job'}
+					{rescanLabel}
 				</button>
 				<button type="button" onclick={startOver}>Scan another</button>
 			</div>
@@ -141,7 +161,7 @@
 
 		<div class="actions">
 			<button type="button" class="primary" onclick={runScore} data-testid="rescan">
-				{scoresStore.jobDescription.trim() === '' ? 'Re-score' : 'Re-score against this job'}
+				{rescanLabel}
 			</button>
 			<button type="button" onclick={startOver} data-testid="start-over">Scan another</button>
 		</div>

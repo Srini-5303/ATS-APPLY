@@ -168,6 +168,15 @@ class ScoresStore {
 		this.status = 'done';
 		this.provider = 'rule-based';
 		this.viewingHistory = true;
+
+		// A stored scan carries no record of what the rules alone produced, so there is nothing
+		// to diff against. Leaving the live scan's baseline in place made `adjustmentFor()`
+		// compare a historical score to an unrelated one and paint an AI-adjustment chip that
+		// never happened.
+		this.ruleBasedScores = {};
+		this.refineMs = null;
+		this.refinementUnavailable = false;
+		this.retryAtMs = null;
 	}
 
 	async removeFromHistory(id: string): Promise<void> {
