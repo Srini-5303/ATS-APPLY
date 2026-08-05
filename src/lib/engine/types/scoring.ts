@@ -115,6 +115,15 @@ export interface Suggestion {
 	details: string[];
 	impact: Impact;
 	platforms: string[];
+	/**
+	 * The dimension this advice would move, when it maps to exactly one.
+	 *
+	 * Lets the detail view file each suggestion under the bar it explains, so a reader looking
+	 * at a keyword score of 34 sees what to do about *that* rather than a flat list covering
+	 * the whole card. Absent for advice that is genuinely whole-document — cutting a resume to
+	 * two pages is not one dimension's problem.
+	 */
+	dimension?: Dimension;
 }
 
 export interface ScoreResult {

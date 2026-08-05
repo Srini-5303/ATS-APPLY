@@ -8,7 +8,7 @@ import { ACTION_VERBS, startsWithActionVerb } from '$engine/scorer/constants/act
 import { QUANT_PATTERNS } from '$engine/scorer/constants/quantification';
 import { PROFILES } from '$engine/scorer/profiles';
 import { SECTION_TYPES, type SectionType } from '$engine/types/parser';
-import type { ScoringInput } from '$engine/types/scoring';
+import { DIMENSIONS, type ScoringInput } from '$engine/types/scoring';
 
 function makeInput(overrides: Partial<ScoringInput> = {}): ScoringInput {
 	const sectionCounts = Object.fromEntries(SECTION_TYPES.map((t) => [t, 0])) as Record<
@@ -247,5 +247,31 @@ describe('scoreResume invariants', () => {
 			const threshold = PROFILES[result.platformId].passingScore;
 			expect(result.passesFilter).toBe(result.overallScore >= threshold);
 		}
+	});
+
+	it('files every rule-derived suggestion under a real dimension', () => {
+		// The detail view groups advice by the bar it would move. A rule that forgets to declare
+		// its dimension silently drops out of that grouping into the whole-document bucket.
+		const weak = makeInput({
+			resumeText: 'EXPERIENCE\n- Did some work',
+			resumeSections: ['experience'],
+			hasMultipleColumns: true,
+			pageCount: 3
+		});
+
+		let checked = 0;
+		for (const result of scoreResume(weak)) {
+			for (const suggestion of result.suggestions) {
+				// Page truncation is deliberately unfiled: it costs whole pages, not one bar.
+				if (suggestion.summary.includes('two pages')) continue;
+
+				expect(DIMENSIONS, `"${suggestion.summary}" names an unknown dimension`).toContain(
+					suggestion.dimension
+				);
+				checked += 1;
+			}
+		}
+
+		expect(checked).toBeGreaterThan(0);
 	});
 });

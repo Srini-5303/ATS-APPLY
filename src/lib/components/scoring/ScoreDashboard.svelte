@@ -2,12 +2,27 @@
 	import { log } from '$lib/log';
 	import { resumeStore } from '$stores/resume.svelte';
 	import { scoresStore } from '$stores/scores.svelte';
+	import PlatformDetail from './PlatformDetail.svelte';
 	import ScoreCard from './ScoreCard.svelte';
 	import ScoringStages from './ScoringStages.svelte';
 
 	let exporting = $state(false);
 
 	const delta = $derived(scoresStore.scoreDelta);
+
+	type View = 'cards' | 'detail';
+
+	/**
+	 * Cards first: six numbers side by side is the comparison people come for. The detail view
+	 * answers the next question — why this number — and costs a click rather than pushing six
+	 * expanded panels onto everyone.
+	 */
+	let view = $state<View>('cards');
+
+	const VIEWS: { id: View; label: string; hint: string }[] = [
+		{ id: 'cards', label: 'Cards', hint: 'Six platforms side by side' },
+		{ id: 'detail', label: 'Detail', hint: 'Evidence and advice per dimension' }
+	];
 
 	async function download() {
 		exporting = true;
@@ -87,11 +102,38 @@
 		</button>
 	</div>
 
-	<div class="grid">
-		{#each scoresStore.results as result (result.platformId)}
-			<ScoreCard {result} />
+	<div class="tabs" role="tablist" aria-label="How to show the platform scores">
+		{#each VIEWS as tab (tab.id)}
+			<button
+				type="button"
+				role="tab"
+				id="tab-{tab.id}"
+				aria-selected={view === tab.id}
+				aria-controls="panel-{tab.id}"
+				class:selected={view === tab.id}
+				onclick={() => (view = tab.id)}
+				data-testid="view-{tab.id}"
+			>
+				{tab.label}
+				<span class="tab-hint">{tab.hint}</span>
+			</button>
 		{/each}
 	</div>
+
+	{#if view === 'cards'}
+		<div class="grid" role="tabpanel" id="panel-cards" aria-labelledby="tab-cards">
+			{#each scoresStore.results as result (result.platformId)}
+				<ScoreCard {result} />
+			{/each}
+		</div>
+	{:else}
+		<div class="stack" role="tabpanel" id="panel-detail" aria-labelledby="tab-detail">
+			{#each scoresStore.results as result, i (result.platformId)}
+				<!-- The first opens so the view is never a wall of shut rows with nothing to read. -->
+				<PlatformDetail {result} open={i === 0} />
+			{/each}
+		</div>
+	{/if}
 </section>
 
 <style>
@@ -234,9 +276,69 @@
 		cursor: progress;
 	}
 
+	.tabs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+		padding: var(--space-1);
+		background: var(--glass-bg);
+		border: 1px solid var(--glass-border);
+		border-radius: var(--radius-full);
+		align-self: flex-start;
+	}
+
+	.tabs button {
+		display: flex;
+		align-items: baseline;
+		gap: var(--space-2);
+		padding: var(--space-2) var(--space-5);
+		background: transparent;
+		border: 0;
+		border-radius: var(--radius-full);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		color: var(--color-text-tertiary);
+		cursor: pointer;
+		transition: background var(--duration-base) var(--ease-out);
+	}
+
+	.tabs button:hover:not(.selected) {
+		background: var(--glass-bg-hover);
+		color: var(--color-text-secondary);
+	}
+
+	.tabs .selected {
+		background: rgba(255, 255, 255, 0.09);
+		color: var(--color-text-primary);
+	}
+
+	.tab-hint {
+		font-size: var(--text-xs);
+		font-weight: 400;
+		color: var(--color-text-tertiary);
+	}
+
+	/* The selected tab sits on a lighter surface, where tertiary grey stops clearing AA at this
+	   size. Caught by the axe gate rather than by eye. */
+	.tabs .selected .tab-hint {
+		color: var(--color-text-secondary);
+	}
+
 	.grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
 		gap: var(--space-4);
+	}
+
+	.stack {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
+	}
+
+	@media (max-width: 34rem) {
+		.tab-hint {
+			display: none;
+		}
 	}
 </style>

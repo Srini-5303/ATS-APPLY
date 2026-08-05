@@ -141,6 +141,69 @@ test.describe('scanner', () => {
 		expect(weakSeen).toBeGreaterThan(0);
 	});
 
+	test('switches between the card and detail views', async ({ page }) => {
+		await openScanner(page);
+		await upload(page, 'single-column-clean');
+		await expect(page.getByTestId('dashboard')).toBeVisible({ timeout: 30_000 });
+
+		// Cards are the default: six numbers side by side is the comparison people come for.
+		await expect(page.getByTestId('view-cards')).toHaveAttribute('aria-selected', 'true');
+		await expect(page.getByTestId('score-card')).toHaveCount(6);
+		await expect(page.getByTestId('platform-detail')).toHaveCount(0);
+
+		await page.getByTestId('view-detail').click();
+
+		await expect(page.getByTestId('view-detail')).toHaveAttribute('aria-selected', 'true');
+		await expect(page.getByTestId('platform-detail')).toHaveCount(6);
+		await expect(page.getByTestId('score-card')).toHaveCount(0);
+
+		// The first opens so the view is never a wall of shut rows with nothing to read.
+		await expect(page.getByTestId('platform-detail').first()).toHaveAttribute('open', '');
+	});
+
+	test('explains each dimension with the evidence behind its score', async ({ page }) => {
+		await openScanner(page);
+		await upload(page, 'single-column-clean');
+		await expect(page.getByTestId('dashboard')).toBeVisible({ timeout: 30_000 });
+		await page.getByTestId('view-detail').click();
+
+		const first = page.getByTestId('platform-detail').first();
+
+		// Every dimension gets a row, each carrying the engine's own evidence rather than the
+		// bare number the card already showed.
+		for (const dimension of [
+			'formatting',
+			'keywordMatch',
+			'sections',
+			'experience',
+			'education',
+			'quantification'
+		]) {
+			await expect(first.locator(`[data-dimension="${dimension}"]`)).toBeVisible();
+		}
+
+		await expect(first.locator('[data-dimension="sections"]')).toContainText('Found:');
+		await expect(first.locator('[data-dimension="experience"]')).toContainText('action verb');
+		await expect(first.locator('[data-dimension="quantification"]')).toContainText(
+			'concrete figure'
+		);
+	});
+
+	test('files advice under the dimension it would move', async ({ page }) => {
+		// A weak resume is what makes advice appear at all.
+		await openScanner(page);
+		await upload(page, 'three-line-stub');
+		await expect(page.getByTestId('dashboard')).toBeVisible({ timeout: 30_000 });
+		await page.getByTestId('view-detail').click();
+
+		const first = page.getByTestId('platform-detail').first();
+		await expect(first.getByTestId('dimension-advice').first()).toBeVisible();
+
+		// Advice sits inside a dimension row, not in a flat list at the foot of the panel.
+		const inRows = await first.locator('[data-dimension] [data-testid="dimension-advice"]').count();
+		expect(inRows).toBeGreaterThan(0);
+	});
+
 	test('resets cleanly for a second scan', async ({ page }) => {
 		await openScanner(page);
 		await upload(page, 'single-column-clean');

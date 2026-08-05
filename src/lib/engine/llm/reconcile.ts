@@ -1,5 +1,11 @@
 import { PROFILES } from '../scorer/profiles';
-import type { Impact, ScoreResult, Suggestion } from '../types/scoring';
+import {
+	DIMENSIONS,
+	type Dimension,
+	type Impact,
+	type ScoreResult,
+	type Suggestion
+} from '../types/scoring';
 import { MAX_ADJUSTMENT } from './prompt';
 
 /**
@@ -36,6 +42,19 @@ function asImpact(value: unknown): Impact {
 }
 
 /**
+ * The dimension the model claims its advice would move.
+ *
+ * Unknown names are dropped rather than coerced: filing keyword advice under `education`
+ * because the model invented a label is worse than leaving it unfiled, where the UI shows it
+ * alongside the platform as a whole.
+ */
+function asDimension(value: unknown): Dimension | null {
+	if (typeof value !== 'string') return null;
+	const match = DIMENSIONS.find((d) => d.toLowerCase() === value.trim().toLowerCase());
+	return match ?? null;
+}
+
+/**
  * Models sometimes fill the slot with "No changes needed" rather than returning an empty
  * array. That is a valid verdict but not a recommendation, and it reads as filler under a
  * heading that promises improvements.
@@ -62,7 +81,15 @@ function parseSuggestions(value: unknown, system: string): Suggestion[] {
 						.filter((d): d is string => d !== null)
 				: [];
 
-			return { summary, details, impact: asImpact(r.impact), platforms: [system] };
+			const dimension = asDimension(r.dimension);
+			const base: Suggestion = {
+				summary,
+				details,
+				impact: asImpact(r.impact),
+				platforms: [system]
+			};
+
+			return dimension ? { ...base, dimension } : base;
 		})
 		.filter((s): s is Suggestion => s !== null);
 }

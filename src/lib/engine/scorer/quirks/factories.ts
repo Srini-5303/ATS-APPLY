@@ -16,13 +16,20 @@ export interface QuirkTemplate {
 	impact: Impact;
 }
 
-function suggestionFrom(template: QuirkTemplate, ctx: QuirkContext): Suggestion {
-	return {
+function suggestionFrom(
+	template: QuirkTemplate,
+	ctx: QuirkContext,
+	dimension?: Dimension
+): Suggestion {
+	const base: Suggestion = {
 		summary: template.summary,
 		details: template.details,
 		impact: template.impact,
 		platforms: [ctx.profile.system]
 	};
+
+	// A quirk that names a dimension explains that bar, so its advice files under it too.
+	return dimension ? { ...base, dimension } : base;
 }
 
 /** `exactOptionalPropertyTypes` rejects an explicit `dimension: undefined`, so omit the key. */
@@ -42,7 +49,7 @@ export function penaltyWhen(
 		{
 			id,
 			evaluate: (ctx) => (predicate(ctx) ? -points : 0),
-			explain: (ctx) => (predicate(ctx) ? suggestionFrom(template, ctx) : null)
+			explain: (ctx) => (predicate(ctx) ? suggestionFrom(template, ctx, dimension) : null)
 		},
 		dimension
 	);
@@ -78,7 +85,7 @@ export function perUnit(
 		{
 			id,
 			evaluate: (ctx) => -countFn(ctx) * pointsPerUnit,
-			explain: (ctx) => (countFn(ctx) > 0 ? suggestionFrom(template, ctx) : null)
+			explain: (ctx) => (countFn(ctx) > 0 ? suggestionFrom(template, ctx, dimension) : null)
 		},
 		dimension
 	);

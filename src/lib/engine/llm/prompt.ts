@@ -102,6 +102,10 @@ Good: "Your Brightstar Lottery bullet 'Built a model routing mechanism using the
 
 If you cannot ground a suggestion in something the resume actually says, omit it.
 
+Tag each suggestion with the one dimension it would move, using exactly one of
+${DIMENSIONS.join(', ')}. Omit the field when the advice is genuinely whole-document rather
+than about a single dimension.
+
 ### The platform notes below are researched, not measured
 
 No one outside these vendors observes their scoring directly. Treat the notes as informed
@@ -143,7 +147,8 @@ Return ONLY valid JSON, no prose and no code fence, in exactly this shape:
         {
           "summary": "Short actionable instruction",
           "details": ["Concrete detail referencing the candidate's actual content"],
-          "impact": "critical|high|medium|low"
+          "impact": "critical|high|medium|low",
+          "dimension": "formatting|keywordMatch|sections|experience|education|quantification"
         }
       ]
     }

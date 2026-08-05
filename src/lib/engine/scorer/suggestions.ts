@@ -1,4 +1,10 @@
-import type { AtsProfile, ScoreBreakdown, ResumeAnalysis, Suggestion } from '../types/scoring';
+import type {
+	AtsProfile,
+	Dimension,
+	ScoreBreakdown,
+	ResumeAnalysis,
+	Suggestion
+} from '../types/scoring';
 
 /**
  * Advice derived from the dimension scores (PRD §7.10).
@@ -14,6 +20,8 @@ import type { AtsProfile, ScoreBreakdown, ResumeAnalysis, Suggestion } from '../
 
 interface Rule {
 	id: string;
+	/** The bar this rule reads and would move. Stamped onto the suggestion it builds. */
+	dimension: Dimension;
 	applies: (b: ScoreBreakdown, a: ResumeAnalysis) => boolean;
 	build: (b: ScoreBreakdown, a: ResumeAnalysis, p: AtsProfile) => Suggestion;
 }
@@ -30,6 +38,7 @@ function list(terms: string[]): string {
 const RULES: Rule[] = [
 	{
 		id: 'keywords.targeted',
+		dimension: 'keywordMatch',
 		applies: (b) => !b.keywordMatch.isIndustryProxy && b.keywordMatch.score < 70,
 		build: (b, _a, p) => ({
 			summary: 'Add the requirements this posting names that your resume does not',
@@ -44,6 +53,7 @@ const RULES: Rule[] = [
 	},
 	{
 		id: 'keywords.industry',
+		dimension: 'keywordMatch',
 		applies: (b) => b.keywordMatch.isIndustryProxy && b.keywordMatch.score < 65,
 		build: (b, _a, p) => ({
 			summary: 'Broaden the vocabulary recruiters search for in your field',
@@ -57,6 +67,7 @@ const RULES: Rule[] = [
 	},
 	{
 		id: 'quantification',
+		dimension: 'quantification',
 		applies: (b) => b.quantification.score < 75 && b.quantification.totalBullets > 0,
 		build: (b, _a, p) => {
 			const unquantified = b.quantification.totalBullets - b.quantification.quantifiedBullets;
@@ -75,6 +86,7 @@ const RULES: Rule[] = [
 	},
 	{
 		id: 'experience.verbs',
+		dimension: 'experience',
 		applies: (b) => b.experience.score < 70 && b.experience.totalBullets > 0,
 		build: (b, _a, p) => ({
 			summary: 'Open more bullets with a strong action verb',
@@ -88,6 +100,7 @@ const RULES: Rule[] = [
 	},
 	{
 		id: 'experience.thin',
+		dimension: 'experience',
 		applies: (b) => b.experience.totalBullets === 0,
 		build: (_b, _a, p) => ({
 			summary: 'Describe what you did in each role',
@@ -101,6 +114,7 @@ const RULES: Rule[] = [
 	},
 	{
 		id: 'sections.missing',
+		dimension: 'sections',
 		applies: (b) => b.sections.missing.length > 0,
 		build: (b, _a, p) => ({
 			summary: `Add the ${b.sections.missing.join(' and ')} section${b.sections.missing.length > 1 ? 's' : ''}`,
@@ -114,6 +128,7 @@ const RULES: Rule[] = [
 	},
 	{
 		id: 'education',
+		dimension: 'education',
 		applies: (b) => b.education.score < 70,
 		build: (b, _a, p) => ({
 			summary: 'Complete the education entry',
@@ -127,6 +142,7 @@ const RULES: Rule[] = [
 	},
 	{
 		id: 'formatting',
+		dimension: 'formatting',
 		applies: (b) => b.formatting.score < 85 && b.formatting.issues.length > 0,
 		build: (b, _a, p) => ({
 			summary: 'Simplify the layout so it survives parsing',
@@ -145,7 +161,10 @@ export function buildSuggestions(
 	analysis: ResumeAnalysis,
 	profile: AtsProfile
 ): Suggestion[] {
-	return RULES.filter((rule) => rule.applies(breakdown, analysis)).map((rule) =>
-		rule.build(breakdown, analysis, profile)
-	);
+	// The dimension comes from the rule rather than each `build`, so a new rule cannot forget
+	// to declare which bar it explains.
+	return RULES.filter((rule) => rule.applies(breakdown, analysis)).map((rule) => ({
+		...rule.build(breakdown, analysis, profile),
+		dimension: rule.dimension
+	}));
 }

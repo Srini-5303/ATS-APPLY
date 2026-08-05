@@ -264,6 +264,53 @@ describe('reconcile', () => {
 		expect(workday?.suggestions.some((s) => s.summary.includes('DeadPool'))).toBe(true);
 	});
 
+	it.each([
+		['keywordMatch', 'keywordMatch'],
+		['KeywordMatch', 'keywordMatch'],
+		['  education  ', 'education'],
+		['quantification', 'quantification']
+	])('files a suggestion tagged %s under %s', (given, expected) => {
+		const { results } = reconcile(baseline, {
+			results: [
+				{
+					system: 'Workday',
+					adjustment: 0,
+					suggestions: [{ summary: 'Name the field of study', dimension: given }]
+				}
+			]
+		});
+
+		const added = results
+			.find((r) => r.platformId === 'workday')
+			?.suggestions.find((s) => s.summary === 'Name the field of study');
+
+		expect(added?.dimension).toBe(expected);
+	});
+
+	it.each([['seniority'], [42], [null], ['']])(
+		'leaves a suggestion unfiled when the dimension is %s',
+		(dimension) => {
+			// Filing keyword advice under `education` because the model invented a label is worse
+			// than leaving it unfiled, where the UI shows it against the platform as a whole.
+			const { results } = reconcile(baseline, {
+				results: [
+					{
+						system: 'Workday',
+						adjustment: 0,
+						suggestions: [{ summary: 'Something to fix', dimension }]
+					}
+				]
+			});
+
+			const added = results
+				.find((r) => r.platformId === 'workday')
+				?.suggestions.find((s) => s.summary === 'Something to fix');
+
+			expect(added).toBeDefined();
+			expect(added?.dimension).toBeUndefined();
+		}
+	);
+
 	it('coerces a malformed suggestion instead of dropping the whole response', () => {
 		const { results } = reconcile(baseline, {
 			results: [
