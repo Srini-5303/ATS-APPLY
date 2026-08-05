@@ -74,11 +74,6 @@ test.describe('accessibility', () => {
 		await scan(page, 'history/empty');
 	});
 
-	test('share page', async ({ page }) => {
-		await page.goto('/share?s=82&p=4&t=1&d=7');
-		await scan(page, 'share');
-	});
-
 	test('error page', async ({ page }) => {
 		await page.goto('/this-route-does-not-exist');
 		await scan(page, '404');

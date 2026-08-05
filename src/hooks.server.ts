@@ -25,8 +25,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 		if (!response.headers.has(header)) response.headers.set(header, value);
 	}
 
-	// /api/og must be embeddable by social crawlers, so it is exempt (PRD §14.1).
-	if (!response.headers.has('Cross-Origin-Resource-Policy') && event.url.pathname !== '/api/og') {
+	// The /api/og exemption that used to live here went with the share feature. Nothing is
+	// meant to be embeddable cross-origin any more, so the policy applies everywhere.
+	if (!response.headers.has('Cross-Origin-Resource-Policy')) {
 		response.headers.set('Cross-Origin-Resource-Policy', 'same-origin');
 	}
 

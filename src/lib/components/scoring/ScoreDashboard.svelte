@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
-	import { buildShareQuery } from '$lib/share';
 	import { log } from '$lib/log';
 	import { resumeStore } from '$stores/resume.svelte';
 	import { scoresStore } from '$stores/scores.svelte';
@@ -10,15 +8,6 @@
 	let exporting = $state(false);
 
 	const delta = $derived(scoresStore.scoreDelta);
-
-	const shareUrl = $derived(
-		`${resolve('/share')}?${buildShareQuery({
-			score: scoresStore.averageScore,
-			passing: scoresStore.passingCount,
-			delta,
-			targeted: scoresStore.jobDescription.trim() !== ''
-		})}`
-	);
 
 	async function download() {
 		exporting = true;
@@ -87,7 +76,7 @@
 		</div>
 	{/if}
 
-	<div class="share-row">
+	<div class="export-row">
 		<button
 			type="button"
 			onclick={() => void download()}
@@ -96,10 +85,6 @@
 		>
 			{exporting ? 'Building PDF…' : 'Download PDF report'}
 		</button>
-		<!-- shareUrl is built with resolve('/share'); the rule cannot see through the template
-		     literal that appends the query string -->
-		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-		<a class="share-link" href={shareUrl} data-testid="share-link">Share this result</a>
 	</div>
 
 	<div class="grid">
@@ -224,30 +209,27 @@
 		color: var(--color-text-tertiary);
 	}
 
-	.share-row {
+	.export-row {
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--space-3);
 	}
 
-	.share-row button,
-	.share-link {
+	.export-row button {
 		padding: var(--space-2) var(--space-5);
 		background: var(--glass-bg);
 		border: 1px solid var(--glass-border);
 		border-radius: var(--radius-full);
 		font-size: var(--text-sm);
 		color: var(--color-text-primary);
-		text-decoration: none;
 		cursor: pointer;
 	}
 
-	.share-row button:hover:not(:disabled),
-	.share-link:hover {
+	.export-row button:hover:not(:disabled) {
 		background: var(--glass-bg-hover);
 	}
 
-	.share-row button:disabled {
+	.export-row button:disabled {
 		opacity: 0.5;
 		cursor: progress;
 	}
