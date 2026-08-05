@@ -114,6 +114,33 @@ test.describe('scanner', () => {
 		expect(leaked).toEqual([]);
 	});
 
+	test('warns on every dimension bar that falls below 75', async ({ page }) => {
+		await openScanner(page);
+		await upload(page, 'single-column-clean');
+		await expect(page.getByTestId('dashboard')).toBeVisible({ timeout: 30_000 });
+
+		// Derived from the number printed beside each bar rather than from a fixed expectation,
+		// so this keeps holding when calibration moves the scores.
+		const rows = page.getByTestId('score-card').first().locator('.bars li');
+		const count = await rows.count();
+		expect(count).toBe(6);
+
+		let weakSeen = 0;
+		for (let i = 0; i < count; i += 1) {
+			const row = rows.nth(i);
+			const score = Number(await row.locator('.bar-value').innerText());
+			const weak = (await row.locator('.fill').getAttribute('data-weak')) === 'true';
+
+			expect(weak, `bar scoring ${String(score)} should be marked weak only below 75`).toBe(
+				score < 75
+			);
+			if (weak) weakSeen += 1;
+		}
+
+		// A fixture with every bar at or above 75 would make the assertion above vacuous.
+		expect(weakSeen).toBeGreaterThan(0);
+	});
+
 	test('resets cleanly for a second scan', async ({ page }) => {
 		await openScanner(page);
 		await upload(page, 'single-column-clean');

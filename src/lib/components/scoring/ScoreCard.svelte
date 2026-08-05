@@ -43,8 +43,17 @@
 	const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 	const dashOffset = $derived(CIRCUMFERENCE * (1 - result.overallScore / 100));
 
+	/**
+	 * At or above this a score reads as healthy.
+	 *
+	 * One constant for both the ring and the dimension bars: they sit on the same card, and a
+	 * bar that stays cool while the ring beside it has already turned would be telling the
+	 * reader two different things about the same threshold.
+	 */
+	const STRONG_SCORE = 75;
+
 	function toneFor(score: number): 'good' | 'mid' | 'low' {
-		if (score >= 75) return 'good';
+		if (score >= STRONG_SCORE) return 'good';
 		if (score >= 50) return 'mid';
 		return 'low';
 	}
@@ -106,7 +115,7 @@
 			<li>
 				<span class="bar-label">{bar.label}</span>
 				<span class="track-bar">
-					<span class="fill" style:width="{bar.score}%"></span>
+					<span class="fill" data-weak={bar.score < STRONG_SCORE} style:width="{bar.score}%"></span>
 				</span>
 				<span class="bar-value">{bar.score}</span>
 			</li>
@@ -252,6 +261,12 @@
 		background: var(--gradient-primary);
 		border-radius: var(--radius-full);
 		transition: width var(--duration-slow) var(--ease-out);
+	}
+
+	/* Attribute rather than a class so the threshold is assertable in a test without pinning a
+	   style name. (0,2,0) beats the plain `.fill` rule above, so ordering is not load-bearing. */
+	.fill[data-weak='true'] {
+		background: var(--gradient-warn);
 	}
 
 	.bar-value {

@@ -35,6 +35,14 @@
 		var(--color-purple)
 	);
 
+	/* Amber shifted toward red, so a shortfall reads as orange rather than as the yellow used
+	   for neutral labels elsewhere. */
+	--gradient-warn: linear-gradient(
+		135deg,
+		var(--color-amber),
+		color-mix(in srgb, var(--color-red) 55%, var(--color-amber))
+	);
+
 	--glow-cyan: 0 0 24px rgba(34, 211, 238, 0.35);
 	--glow-purple: 0 0 24px rgba(168, 85, 247, 0.35);
 
