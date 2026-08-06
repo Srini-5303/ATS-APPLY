@@ -163,10 +163,6 @@
 					<span class="score" data-weak={row.score < STRONG_SCORE}>{row.score}</span>
 				</header>
 
-				<span class="track">
-					<span class="fill" data-weak={row.score < STRONG_SCORE} style:width="{row.score}%"></span>
-				</span>
-
 				<ul class="evidence">
 					{#each row.evidence as line, i (i)}
 						<li>{line}</li>
@@ -280,7 +276,6 @@
 		align-items: baseline;
 		justify-content: space-between;
 		gap: var(--space-3);
-		margin-bottom: var(--space-2);
 	}
 
 	/* Matches the section labels in the extraction panel, so a heading that names a measured
@@ -293,25 +288,9 @@
 		color: var(--color-text-tertiary);
 	}
 
-	.track {
-		display: block;
-		height: 6px;
-		background: rgba(255, 255, 255, 0.08);
-		border-radius: var(--radius-full);
-		overflow: hidden;
-	}
-
-	.fill {
-		display: block;
-		height: 100%;
-		background: var(--gradient-primary);
-		border-radius: var(--radius-full);
-	}
-
-	.fill[data-weak='true'] {
-		background: var(--gradient-warn);
-	}
-
+	/* No bar here. The card view already draws six of them; repeating the shape inside the
+	   detail view added length without adding information the number does not carry. Colour on
+	   the number keeps the below-75 signal. */
 	.score {
 		font-family: var(--font-mono);
 		font-size: var(--text-xl);
