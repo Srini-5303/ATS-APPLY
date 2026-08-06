@@ -19,9 +19,9 @@
 	 */
 	let view = $state<View>('cards');
 
-	const VIEWS: { id: View; label: string; hint: string }[] = [
-		{ id: 'cards', label: 'Cards', hint: 'Six platforms side by side' },
-		{ id: 'detail', label: 'Detail', hint: 'Evidence and advice per dimension' }
+	const VIEWS: { id: View; label: string }[] = [
+		{ id: 'cards', label: 'Cards' },
+		{ id: 'detail', label: 'Detail' }
 	];
 
 	async function download() {
@@ -91,33 +91,53 @@
 		</div>
 	{/if}
 
-	<div class="export-row">
+	<div class="toolbar">
+		<div class="tabs" role="tablist" aria-label="How to show the platform scores">
+			{#each VIEWS as tab (tab.id)}
+				<button
+					type="button"
+					role="tab"
+					id="tab-{tab.id}"
+					aria-selected={view === tab.id}
+					aria-controls="panel-{tab.id}"
+					class:selected={view === tab.id}
+					onclick={() => (view = tab.id)}
+					data-testid="view-{tab.id}"
+				>
+					<svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
+						{#if tab.id === 'cards'}
+							<rect x="2" y="2" width="5" height="5" rx="1" />
+							<rect x="9" y="2" width="5" height="5" rx="1" />
+							<rect x="2" y="9" width="5" height="5" rx="1" />
+							<rect x="9" y="9" width="5" height="5" rx="1" />
+						{:else}
+							<path d="M2 4h12M2 8h12M2 12h7" />
+						{/if}
+					</svg>
+					{tab.label}
+				</button>
+			{/each}
+		</div>
+
+		<!-- Icon only: the label was the longest string in the row and this is a secondary
+		     action. The accessible name carries the full wording. -->
 		<button
 			type="button"
+			class="download"
 			onclick={() => void download()}
 			disabled={exporting}
+			aria-label={exporting ? 'Building the PDF report' : 'Download the PDF report'}
+			title={exporting ? 'Building the PDF report…' : 'Download the PDF report'}
 			data-testid="export-pdf"
 		>
-			{exporting ? 'Building PDF…' : 'Download PDF report'}
+			{#if exporting}
+				<span class="spin" aria-hidden="true"></span>
+			{:else}
+				<svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
+					<path d="M8 2v7.5M4.75 6.75 8 10l3.25-3.25M3 13h10" />
+				</svg>
+			{/if}
 		</button>
-	</div>
-
-	<div class="tabs" role="tablist" aria-label="How to show the platform scores">
-		{#each VIEWS as tab (tab.id)}
-			<button
-				type="button"
-				role="tab"
-				id="tab-{tab.id}"
-				aria-selected={view === tab.id}
-				aria-controls="panel-{tab.id}"
-				class:selected={view === tab.id}
-				onclick={() => (view = tab.id)}
-				data-testid="view-{tab.id}"
-			>
-				{tab.label}
-				<span class="tab-hint">{tab.hint}</span>
-			</button>
-		{/each}
 	</div>
 
 	{#if view === 'cards'}
@@ -251,29 +271,58 @@
 		color: var(--color-text-tertiary);
 	}
 
-	.export-row {
+	/* Tabs and the export action share one line: they are both controls over the same panel,
+	   and the export button was previously a full-width row of its own for one small action. */
+	.toolbar {
 		display: flex;
 		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
 		gap: var(--space-3);
 	}
 
-	.export-row button {
-		padding: var(--space-2) var(--space-5);
+	.download {
+		display: grid;
+		place-items: center;
+		width: 2.5rem;
+		height: 2.5rem;
 		background: var(--glass-bg);
 		border: 1px solid var(--glass-border);
 		border-radius: var(--radius-full);
-		font-size: var(--text-sm);
-		color: var(--color-text-primary);
+		color: var(--color-text-secondary);
 		cursor: pointer;
+		transition: background var(--duration-base) var(--ease-out);
 	}
 
-	.export-row button:hover:not(:disabled) {
+	.download:hover:not(:disabled) {
 		background: var(--glass-bg-hover);
+		color: var(--color-text-primary);
 	}
 
-	.export-row button:disabled {
-		opacity: 0.5;
+	.download:disabled {
 		cursor: progress;
+	}
+
+	.spin {
+		width: 0.875rem;
+		height: 0.875rem;
+		border: 1.5px solid color-mix(in srgb, var(--color-cyan) 30%, transparent);
+		border-top-color: var(--color-cyan);
+		border-radius: var(--radius-full);
+		animation: spin 700ms linear infinite;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(1turn);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.spin {
+			animation: none;
+			opacity: 0.7;
+		}
 	}
 
 	.tabs {
@@ -289,9 +338,9 @@
 
 	.tabs button {
 		display: flex;
-		align-items: baseline;
+		align-items: center;
 		gap: var(--space-2);
-		padding: var(--space-2) var(--space-5);
+		padding: var(--space-2) var(--space-4);
 		background: transparent;
 		border: 0;
 		border-radius: var(--radius-full);
@@ -312,16 +361,15 @@
 		color: var(--color-text-primary);
 	}
 
-	.tab-hint {
-		font-size: var(--text-xs);
-		font-weight: 400;
-		color: var(--color-text-tertiary);
-	}
-
-	/* The selected tab sits on a lighter surface, where tertiary grey stops clearing AA at this
-	   size. Caught by the axe gate rather than by eye. */
-	.tabs .selected .tab-hint {
-		color: var(--color-text-secondary);
+	.icon {
+		width: 0.875rem;
+		height: 0.875rem;
+		flex-shrink: 0;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.5;
+		stroke-linecap: round;
+		stroke-linejoin: round;
 	}
 
 	.grid {

@@ -32,6 +32,13 @@ export default defineConfig(
 				parser: ts.parser,
 				svelteConfig
 			}
+		},
+		rules: {
+			// `{@render snippet()}` is a template directive that the parser surfaces as an
+			// expression, so a rule written for TypeScript statements flags every use of the
+			// idiomatic Svelte 5 way to share markup. Disabled for components only; the rule
+			// still applies to every plain .ts file.
+			'@typescript-eslint/no-confusing-void-expression': 'off'
 		}
 	},
 

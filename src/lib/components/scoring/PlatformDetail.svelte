@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { DIMENSIONS, type Dimension, type ScoreResult } from '$engine/types/scoring';
+	import {
+		DIMENSIONS,
+		type Dimension,
+		type ScoreResult,
+		type Suggestion
+	} from '$engine/types/scoring';
 
 	/**
 	 * One platform, opened up dimension by dimension.
@@ -91,14 +96,20 @@
 			case 'education':
 				return b.education.notes.length > 0 ? b.education.notes : ['Nothing missing here.'];
 
-			case 'quantification':
+			case 'quantification': {
 				if (b.quantification.totalBullets === 0) return ['No bullet points to measure.'];
+
+				// A bullet that both opens with an action verb and carries a figure qualifies as an
+				// experience highlight *and* a quantification example, so the two rows were quoting
+				// the same lines a few centimetres apart. Show only what the row above did not.
+				const alreadyShown = new Set(b.experience.highlights);
+				const fresh = b.quantification.examples.filter((e) => !alreadyShown.has(e));
+
 				return [
 					`${String(b.quantification.quantifiedBullets)} of ${String(b.quantification.totalBullets)} bullets carry a concrete figure.`,
-					...(b.quantification.examples.length > 0
-						? ['Counted here:', ...b.quantification.examples.map((e) => `“${e}”`)]
-						: [])
+					...(fresh.length > 0 ? ['Counted here:', ...fresh.map((e) => `“${e}”`)] : [])
 				];
+			}
 		}
 	}
 
@@ -132,17 +143,29 @@
 		<span class="total" data-weak={result.overallScore < STRONG_SCORE}>{result.overallScore}</span>
 	</summary>
 
+	{#snippet advice(suggestion: Suggestion)}
+		<div class="advice" data-testid="dimension-advice">
+			<p class="advice-summary">
+				<span class="impact {suggestion.impact}">{suggestion.impact}</span>
+				{suggestion.summary}
+			</p>
+			{#each suggestion.details as detail, i (i)}
+				<p class="detail">{detail}</p>
+			{/each}
+		</div>
+	{/snippet}
+
 	<div class="rows">
 		{#each rows as row (row.dimension)}
 			<section class="row" data-dimension={row.dimension}>
 				<header>
 					<h4>{row.label}</h4>
-					<span class="track">
-						<span class="fill" data-weak={row.score < STRONG_SCORE} style:width="{row.score}%"
-						></span>
-					</span>
 					<span class="score" data-weak={row.score < STRONG_SCORE}>{row.score}</span>
 				</header>
+
+				<span class="track">
+					<span class="fill" data-weak={row.score < STRONG_SCORE} style:width="{row.score}%"></span>
+				</span>
 
 				<ul class="evidence">
 					{#each row.evidence as line, i (i)}
@@ -151,15 +174,7 @@
 				</ul>
 
 				{#each row.advice as suggestion (suggestion.summary)}
-					<div class="advice" data-testid="dimension-advice">
-						<p class="summary">
-							<span class="impact {suggestion.impact}">{suggestion.impact}</span>
-							{suggestion.summary}
-						</p>
-						{#each suggestion.details as detail, i (i)}
-							<p class="detail">{detail}</p>
-						{/each}
-					</div>
+					{@render advice(suggestion)}
 				{/each}
 			</section>
 		{/each}
@@ -168,15 +183,7 @@
 			<section class="row">
 				<header><h4>Whole document</h4></header>
 				{#each general as suggestion (suggestion.summary)}
-					<div class="advice" data-testid="dimension-advice">
-						<p class="summary">
-							<span class="impact {suggestion.impact}">{suggestion.impact}</span>
-							{suggestion.summary}
-						</p>
-						{#each suggestion.details as detail, i (i)}
-							<p class="detail">{detail}</p>
-						{/each}
-					</div>
+					{@render advice(suggestion)}
 				{/each}
 			</section>
 		{/if}
@@ -251,30 +258,43 @@
 		color: var(--color-amber);
 	}
 
+	/* Six discrete blocks rather than rows in a table. The dimensions are independent
+	   measurements, and a shared border made them read as one continuous list where a long
+	   evidence line from one bled into the next. */
 	.rows {
 		display: flex;
 		flex-direction: column;
-		padding: 0 var(--space-5) var(--space-5);
+		gap: var(--space-3);
+		padding: var(--space-1) var(--space-4) var(--space-4);
 	}
 
 	.row {
-		padding: var(--space-4) 0;
-		border-top: 1px solid var(--glass-border);
+		padding: var(--space-4);
+		background: rgba(255, 255, 255, 0.025);
+		border: 1px solid rgba(255, 255, 255, 0.05);
+		border-radius: var(--radius-md);
 	}
 
 	.row header {
-		display: grid;
-		grid-template-columns: 9rem 1fr 2.5rem;
-		align-items: center;
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
 		gap: var(--space-3);
+		margin-bottom: var(--space-2);
 	}
 
+	/* Matches the section labels in the extraction panel, so a heading that names a measured
+	   thing looks the same everywhere in the report. */
 	h4 {
-		font-size: var(--text-sm);
+		font-size: var(--text-xs);
 		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--color-text-tertiary);
 	}
 
 	.track {
+		display: block;
 		height: 6px;
 		background: rgba(255, 255, 255, 0.08);
 		border-radius: var(--radius-full);
@@ -294,20 +314,18 @@
 
 	.score {
 		font-family: var(--font-mono);
-		font-size: var(--text-sm);
-		text-align: right;
+		font-size: var(--text-xl);
 		font-variant-numeric: tabular-nums;
-		color: var(--color-text-tertiary);
+		line-height: 1;
+		color: var(--color-text-primary);
 	}
 
 	.score[data-weak='true'] {
 		color: color-mix(in srgb, var(--color-amber) 85%, white 15%);
 	}
 
-	/* Indented to the bar's own column, so the eye reads evidence as belonging to the score
-	   above it rather than to the panel. */
 	.evidence {
-		margin: var(--space-2) 0 0 9.75rem;
+		margin: var(--space-3) 0 0;
 		padding: 0;
 		list-style: none;
 		font-size: var(--text-sm);
@@ -319,14 +337,14 @@
 	}
 
 	.advice {
-		margin: var(--space-3) 0 0 9.75rem;
+		margin-top: var(--space-3);
 		padding: var(--space-3) var(--space-4);
-		background: rgba(255, 255, 255, 0.03);
+		background: color-mix(in srgb, var(--color-cyan) 7%, transparent);
 		border-left: 2px solid var(--color-cyan);
 		border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 	}
 
-	.summary {
+	.advice-summary {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
@@ -375,20 +393,6 @@
 		.vendor,
 		.verdict {
 			grid-column: 2 / -1;
-		}
-
-		.row header {
-			grid-template-columns: 1fr 2.5rem;
-		}
-
-		.track {
-			grid-column: 1 / -1;
-			grid-row: 2;
-		}
-
-		.evidence,
-		.advice {
-			margin-left: 0;
 		}
 	}
 </style>
