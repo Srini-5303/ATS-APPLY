@@ -290,13 +290,17 @@
 
 	/* No bar here. The card view already draws six of them; repeating the shape inside the
 	   detail view added length without adding information the number does not carry. Colour on
-	   the number keeps the below-75 signal. */
+	   the number is what is left to carry the signal, so it does the whole job:
+	   cyan is the first stop of the gradient the card bars fill with, so a healthy score reads
+	   the same way in both views. Solid rather than a clipped gradient — across two or three
+	   digits a gradient resolves to one colour anyway, and it would leave 36 elements per
+	   report relying on `background-clip: text` to be visible at all. */
 	.score {
 		font-family: var(--font-mono);
 		font-size: var(--text-xl);
 		font-variant-numeric: tabular-nums;
 		line-height: 1;
-		color: var(--color-text-primary);
+		color: var(--color-cyan);
 	}
 
 	.score[data-weak='true'] {
