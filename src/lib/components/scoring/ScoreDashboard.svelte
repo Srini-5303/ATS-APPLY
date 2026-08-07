@@ -24,6 +24,48 @@
 		{ id: 'detail', label: 'Detail' }
 	];
 
+	const tabEls: HTMLButtonElement[] = [];
+
+	/**
+	 * Arrow-key movement between tabs, per the ARIA authoring practices.
+	 *
+	 * A tablist is one stop in the tab order, not one stop per tab: `Tab` reaches the selected
+	 * tab and moves on to the panel, while the arrows choose between them. That is what the
+	 * roving `tabindex` below implements, and without this handler the arrows did nothing and
+	 * the only way in was to Tab through every control.
+	 *
+	 * Selection follows focus because switching view is instant and has no cost to undo — the
+	 * separate-activation pattern exists for tabs that fetch, which these do not.
+	 */
+	function moveTab(event: KeyboardEvent, from: number): void {
+		const last = VIEWS.length - 1;
+
+		let to: number;
+		switch (event.key) {
+			case 'ArrowRight':
+				to = from === last ? 0 : from + 1;
+				break;
+			case 'ArrowLeft':
+				to = from === 0 ? last : from - 1;
+				break;
+			case 'Home':
+				to = 0;
+				break;
+			case 'End':
+				to = last;
+				break;
+			default:
+				return;
+		}
+
+		const target = VIEWS[to];
+		if (!target) return;
+
+		event.preventDefault();
+		view = target.id;
+		tabEls[to]?.focus();
+	}
+
 	async function download() {
 		exporting = true;
 		try {
@@ -93,15 +135,20 @@
 
 	<div class="toolbar">
 		<div class="tabs" role="tablist" aria-label="How to show the platform scores">
-			{#each VIEWS as tab (tab.id)}
+			{#each VIEWS as tab, i (tab.id)}
 				<button
+					bind:this={tabEls[i]}
 					type="button"
 					role="tab"
 					id="tab-{tab.id}"
 					aria-selected={view === tab.id}
 					aria-controls="panel-{tab.id}"
+					tabindex={view === tab.id ? 0 : -1}
 					class:selected={view === tab.id}
 					onclick={() => (view = tab.id)}
+					onkeydown={(e) => {
+						moveTab(e, i);
+					}}
 					data-testid="view-{tab.id}"
 				>
 					<svg class="icon" viewBox="0 0 16 16" aria-hidden="true">

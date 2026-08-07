@@ -140,4 +140,38 @@ test.describe('keyboard navigation', () => {
 		// The SVG ring is aria-hidden, so the score has to be readable some other way.
 		await expect(page.getByText(/Workday scores \d+ out of 100/)).toBeAttached();
 	});
+
+	test('moves between the view tabs with the arrow keys', async ({ page }) => {
+		await openScanner(page);
+		await page
+			.getByTestId('file-input')
+			.setInputFiles(join(FIXTURES, 'pdf', 'single-column-clean.pdf'));
+		await expect(page.getByTestId('dashboard')).toBeVisible({ timeout: 30_000 });
+
+		const cards = page.getByTestId('view-cards');
+		const detail = page.getByTestId('view-detail');
+
+		// A tablist is one stop in the tab order, not one per tab: only the selected tab is
+		// reachable with Tab, and the arrows choose between them.
+		await expect(cards).toHaveAttribute('tabindex', '0');
+		await expect(detail).toHaveAttribute('tabindex', '-1');
+
+		await cards.focus();
+		await page.keyboard.press('ArrowRight');
+
+		await expect(detail).toBeFocused();
+		await expect(detail).toHaveAttribute('aria-selected', 'true');
+		await expect(page.getByTestId('platform-detail')).toHaveCount(6);
+
+		// Wraps rather than dead-ending at the last tab.
+		await page.keyboard.press('ArrowRight');
+		await expect(cards).toBeFocused();
+		await expect(page.getByTestId('score-card')).toHaveCount(6);
+
+		await page.keyboard.press('End');
+		await expect(detail).toBeFocused();
+
+		await page.keyboard.press('Home');
+		await expect(cards).toBeFocused();
+	});
 });
