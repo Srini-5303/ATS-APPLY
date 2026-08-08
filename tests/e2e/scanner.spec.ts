@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type Page } from '@playwright/test';
@@ -202,6 +203,37 @@ test.describe('scanner', () => {
 		// Advice sits inside a dimension row, not in a flat list at the foot of the panel.
 		const inRows = await first.locator('[data-dimension] [data-testid="dimension-advice"]').count();
 		expect(inRows).toBeGreaterThan(0);
+	});
+
+	test('exports a PDF carrying the same evidence the detail view shows', async ({ page }) => {
+		await openScanner(page);
+		await upload(page, 'single-column-clean');
+		await expect(page.getByTestId('dashboard')).toBeVisible({ timeout: 30_000 });
+
+		const [download] = await Promise.all([
+			page.waitForEvent('download', { timeout: 60_000 }),
+			page.getByTestId('export-pdf').click()
+		]);
+
+		const path = await download.path();
+		const pdf = await readFile(path, 'latin1');
+
+		expect(pdf.startsWith('%PDF')).toBe(true);
+
+		// jsPDF writes uncompressed content streams, so the rendered strings are searchable in
+		// the bytes. Section 1 was always there; 3 is the per-dimension breakdown, which used to
+		// exist only on screen while the downloaded report showed bare numbers.
+		for (const section of [
+			'1. PLATFORM COMPATIBILITY SCORES',
+			'3. PLATFORM DETAIL',
+			'5. METHODOLOGY'
+		]) {
+			expect(pdf, `missing section: ${section}`).toContain(section);
+		}
+
+		// Evidence, not just the score.
+		expect(pdf).toMatch(/bullets open with a strong action verb/);
+		expect(pdf).toContain('Found: experience, education, skills');
 	});
 
 	test('resets cleanly for a second scan', async ({ page }) => {

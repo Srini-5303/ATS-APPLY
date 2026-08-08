@@ -1,10 +1,6 @@
 <script lang="ts">
-	import {
-		DIMENSIONS,
-		type Dimension,
-		type ScoreResult,
-		type Suggestion
-	} from '$engine/types/scoring';
+	import { DIMENSIONS, type ScoreResult, type Suggestion } from '$engine/types/scoring';
+	import { dimensionEvidence, labelFor, STRONG_SCORE } from '$utils/evidence';
 
 	/**
 	 * One platform, opened up dimension by dimension.
@@ -17,111 +13,12 @@
 
 	let { result, open = false }: { result: ScoreResult; open?: boolean } = $props();
 
-	const LABELS: Record<Dimension, string> = {
-		formatting: 'Formatting',
-		keywordMatch: 'Keywords',
-		sections: 'Sections',
-		experience: 'Experience',
-		education: 'Education',
-		quantification: 'Quantification'
-	};
-
-	/** Matches the ring and the card bars — one threshold across the whole report. */
-	const STRONG_SCORE = 75;
-
-	/** At most this many terms before a list stops being readable. */
-	const SAMPLE = 12;
-
-	function sample(terms: string[]): string {
-		const rest = terms.length - SAMPLE;
-		const head = terms.slice(0, SAMPLE).join(', ');
-		return rest > 0 ? `${head} + ${String(rest)} more` : head;
-	}
-
-	/**
-	 * The evidence behind one score, in the engine's own words.
-	 *
-	 * Returns the facts only. Anything prescriptive belongs in a suggestion, so the two never
-	 * say the same thing twice in one panel.
-	 */
-	function evidenceFor(dimension: Dimension): string[] {
-		const b = result.breakdown;
-
-		switch (dimension) {
-			case 'formatting':
-				return b.formatting.issues.length === 0
-					? ['Nothing in the layout tripped this parser.']
-					: b.formatting.details;
-
-			case 'keywordMatch': {
-				const noun = b.keywordMatch.isIndustryProxy ? 'industry terms' : 'requirements';
-				const lines = [
-					`Matched ${String(b.keywordMatch.matched.length)} of ${String(
-						b.keywordMatch.matched.length + b.keywordMatch.missing.length
-					)} ${noun}.`
-				];
-				if (b.keywordMatch.matched.length > 0) {
-					lines.push(`Found: ${sample(b.keywordMatch.matched)}.`);
-				}
-				if (b.keywordMatch.missing.length > 0) {
-					lines.push(`Absent: ${sample(b.keywordMatch.missing)}.`);
-				}
-				if (b.keywordMatch.synonymMatched.length > 0) {
-					lines.push(
-						`Credited at a discount because the wording differs: ${sample(b.keywordMatch.synonymMatched)}.`
-					);
-				}
-				return lines;
-			}
-
-			case 'sections': {
-				const lines = [`Found: ${b.sections.present.join(', ') || 'none'}.`];
-				if (b.sections.missing.length > 0) {
-					lines.push(`This platform also expects: ${b.sections.missing.join(', ')}.`);
-				}
-				return lines;
-			}
-
-			case 'experience':
-				if (b.experience.totalBullets === 0)
-					return ['No bullet points were found under your roles.'];
-				return [
-					`${String(b.experience.actionVerbCount)} of ${String(b.experience.totalBullets)} bullets open with a strong action verb.`,
-					// Label once, then quote. Repeating "Strongest:" on every line reads as a stutter.
-					...(b.experience.highlights.length > 0
-						? ['Your strongest bullets:', ...b.experience.highlights.map((h) => `“${h}”`)]
-						: [])
-				];
-
-			case 'education':
-				return b.education.notes.length > 0 ? b.education.notes : ['Nothing missing here.'];
-
-			case 'quantification': {
-				if (b.quantification.totalBullets === 0) return ['No bullet points to measure.'];
-
-				// A bullet that both opens with an action verb and carries a figure qualifies as an
-				// experience highlight *and* a quantification example, so the two rows were quoting
-				// the same lines a few centimetres apart. Show only what the row above did not.
-				const alreadyShown = new Set(b.experience.highlights);
-				const fresh = b.quantification.examples.filter((e) => !alreadyShown.has(e));
-
-				return [
-					`${String(b.quantification.quantifiedBullets)} of ${String(b.quantification.totalBullets)} bullets carry a concrete figure.`,
-					...(fresh.length > 0 ? ['Counted here:', ...fresh.map((e) => `“${e}”`)] : [])
-				];
-			}
-		}
-	}
-
 	const rows = $derived(
 		DIMENSIONS.map((dimension) => ({
 			dimension,
-			label:
-				dimension === 'keywordMatch' && result.breakdown.keywordMatch.isIndustryProxy
-					? 'Industry terms'
-					: LABELS[dimension],
+			label: labelFor(result, dimension),
 			score: result.breakdown[dimension].score,
-			evidence: evidenceFor(dimension),
+			evidence: dimensionEvidence(result, dimension),
 			advice: result.suggestions.filter((s) => s.dimension === dimension)
 		}))
 	);

@@ -1,5 +1,6 @@
 import { PROFILES } from '$engine/scorer/profiles';
-import { DIMENSIONS, type Impact, type ScoreResult } from '$engine/types/scoring';
+import { DIMENSIONS, type Impact, type ScoreResult, type Suggestion } from '$engine/types/scoring';
+import { dimensionEvidence, labelFor, STRONG_SCORE } from './evidence';
 
 /**
  * Client-side PDF report.
@@ -13,6 +14,15 @@ import { DIMENSIONS, type Impact, type ScoreResult } from '$engine/types/scoring
 
 /** A score this far below a platform's threshold is borderline rather than a clean fail. */
 const MARGINAL_BAND = 8;
+
+/**
+ * Evidence lines printed per dimension in the detail section.
+ *
+ * The screen can scroll; six platforms times six dimensions times an uncapped list of quoted
+ * bullets cannot. Four keeps each block to a few lines while still carrying the counts and the
+ * first examples.
+ */
+const EVIDENCE_LINES = 4;
 
 type Status = 'PASS' | 'MARGINAL' | 'FAIL';
 
@@ -365,11 +375,120 @@ export async function exportReport(input: ReportInput): Promise<void> {
 		}
 	}
 
-	// ── 3. Keyword coverage ───────────────────────────────────────────────────
+	// ── 3. Platform detail ────────────────────────────────────────────────────
+	//
+	// The table in section 1 gives six numbers per platform and no reason for any of them.
+	// This is the same evidence the on-screen detail view shows, from the same module, so the
+	// printed report and the screen cannot disagree.
+	heading('3. PLATFORM DETAIL');
+
+	gray(INK.muted);
+	paragraph(
+		'What each score was measured from, with the advice that would move it. Experience, ' +
+			'education and quantification read the resume itself and so read the same on every ' +
+			'platform; formatting, keywords and sections are where the parsers genuinely differ.',
+		8,
+		11
+	);
+	y += 8;
+
+	/** One suggestion, indented under whatever it belongs to. */
+	const adviceBlock = (suggestion: Suggestion, indent: number) => {
+		ensure(26);
+		gray(INK.text);
+		doc.setFont('helvetica', 'bold');
+		doc.setFontSize(8);
+		doc.text(suggestion.summary, margin + indent, y);
+
+		doc.setTextColor(
+			...TONE[
+				suggestion.impact === 'low' ? 'PASS' : suggestion.impact === 'medium' ? 'MARGINAL' : 'FAIL'
+			]
+		);
+		doc.setFontSize(7);
+		doc.text(suggestion.impact.toUpperCase(), right, y, { align: 'right' });
+		y += 11;
+
+		gray(INK.muted);
+		doc.setFont('helvetica', 'normal');
+		doc.setFontSize(8);
+		for (const detail of suggestion.details.slice(0, 2)) {
+			for (const line of doc.splitTextToSize(detail, width - indent) as string[]) {
+				ensure(10);
+				doc.text(line, margin + indent, y);
+				y += 10;
+			}
+		}
+		y += 4;
+	};
+
+	for (const result of input.results) {
+		// Enough room that a platform name never strands itself at the foot of a page.
+		ensure(80);
+
+		const detailStatus = statusOf(result, PROFILES[result.platformId].passingScore);
+
+		gray(INK.text);
+		text(result.system, 11, 'bold');
+		doc.setTextColor(...TONE[detailStatus]);
+		doc.setFont('helvetica', 'bold');
+		doc.setFontSize(9);
+		doc.text(`${String(result.overallScore)}/100  ${detailStatus}`, right, y, { align: 'right' });
+		y += 6;
+		rule();
+		y += 14;
+
+		for (const dimension of DIMENSIONS) {
+			const score = result.breakdown[dimension].score;
+			const lines = dimensionEvidence(result, dimension).slice(0, EVIDENCE_LINES);
+			const advice = result.suggestions.filter((s) => s.dimension === dimension);
+
+			ensure(20 + lines.length * 10);
+
+			gray(INK.text);
+			text(labelFor(result, dimension), 9, 'bold');
+
+			// Only a shortfall is coloured. A page of green numbers hides the two that matter.
+			if (score < STRONG_SCORE) doc.setTextColor(...TONE.MARGINAL);
+			else gray(INK.text);
+			doc.setFont('helvetica', 'bold');
+			doc.setFontSize(9);
+			doc.text(String(score), margin + 120, y, { align: 'right' });
+			y += 12;
+
+			gray(INK.muted);
+			doc.setFont('helvetica', 'normal');
+			doc.setFontSize(8);
+			for (const line of lines) {
+				for (const wrapped of doc.splitTextToSize(line, width - 16) as string[]) {
+					ensure(10);
+					doc.text(wrapped, margin + 16, y);
+					y += 10;
+				}
+			}
+
+			y += 2;
+			for (const suggestion of advice) adviceBlock(suggestion, 16);
+			y += 6;
+		}
+
+		const unfiled = result.suggestions.filter((s) => s.dimension === undefined);
+		if (unfiled.length > 0) {
+			ensure(30);
+			gray(INK.text);
+			text('Whole document', 9, 'bold');
+			y += 12;
+			for (const suggestion of unfiled) adviceBlock(suggestion, 16);
+		}
+
+		y += 6;
+	}
+
+	// ── 4. Keyword coverage ───────────────────────────────────────────────────
 	const { matched, missing } = keywordCoverage(input.results);
 
 	if (matched.length > 0 || missing.length > 0) {
-		heading('3. KEYWORD COVERAGE');
+		heading('4. KEYWORD COVERAGE');
 
 		const half = width / 2 - 8;
 		const startY = y;
@@ -403,7 +522,7 @@ export async function exportReport(input: ReportInput): Promise<void> {
 	}
 
 	// ── 4. Methodology ────────────────────────────────────────────────────────
-	heading('4. METHODOLOGY');
+	heading('5. METHODOLOGY');
 	gray(INK.muted);
 	paragraph(
 		'Each platform score is a weighted composite of six dimensions: formatting compliance, ' +
